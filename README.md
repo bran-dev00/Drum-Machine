@@ -1,2 +1,9 @@
 # Drum-Machine
-A Drum Machine written in C++ 
+
+A Drum Machine written in C++
+
+# Build Commands
+
+- cmake -G "MinGW Makefiles" -S . -B build
+- cmake --build build
+- ./build/DrumMachine.exe
