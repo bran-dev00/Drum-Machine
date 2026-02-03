@@ -2,10 +2,15 @@
 #include <string>
 #include <iostream>
 
-DrumController::DrumController()
+DrumController::DrumController(const std::wstring& samplePath)
+: samplePath(samplePath)
 {
+    
     initSequencer();
     isPlaying = false;
+    lastStep = std::chrono::steady_clock::now();
+    bpm_ = 120;
+
 }
 
 DrumController::~DrumController() = default;
@@ -30,18 +35,24 @@ void DrumController::playSound(std::wstring& samplePath)
     PlaySoundW(samplePath.c_str(), NULL, SND_FILENAME | SND_ASYNC);
 }
 
-void DrumController::step(std::chrono::time_point<std::chrono::steady_clock> lastStep, std::wstring& samplePath){
+void DrumController::step(){
     auto now = std::chrono::steady_clock::now();
     
     //TODO: Match time with set bpm
-    if(std::chrono::duration_cast<std::chrono::milliseconds>(now - lastStep) > 1000ms){
+    std::chrono::duration<double> secondsPerBeat(60.0/bpm_);
+    auto bpmToMs = std::chrono::duration_cast<std::chrono::milliseconds>(secondsPerBeat);
+    if(isPlaying && std::chrono::duration_cast<std::chrono::milliseconds>(now - lastStep) > bpmToMs){
         playSound(samplePath);
+        lastStep = now;
     }else{
         return;
     }
 
 }
 
+void DrumController::setBpm(int bpm){
+    bpm_ = bpm;
+}
 
 void DrumController::setSequencerNoteTrue(int index)
 {
@@ -75,37 +86,13 @@ std::string DrumController::getSequencer()
 
 }
 
-void DrumController::playSequencer(std::wstring& samplePath) 
+void DrumController::playSequencer() 
 {
     setIsPlayingTrue();
-    
-    std::chrono::time_point<std::chrono::steady_clock> last_sound_timepoint = std::chrono::steady_clock::now(); 
-    int test_stop = 0;
-
-    while(isPlaying)
-    {
-        auto now = std::chrono::steady_clock::now();
-        
-        if(std::chrono::duration_cast<std::chrono::milliseconds>(now - last_sound_timepoint) > 1000ms ){
-            currStep = (currStep + 1) % MAX_STEPS;
-
-            if(test_stop >= 10){
-                pauseSequencer();
-            }
-
-            if (sequencer[currStep]){
-                PlaySoundW(samplePath.c_str(), NULL, SND_FILENAME | SND_ASYNC);
-                std::cout << "PLAY SOUND: "<< isPlaying << std::endl;
-            }
-            last_sound_timepoint = now;
-            test_stop++;
-        }
-        // std::cout << "DEBUG: OUT HERE: "<<  isPlaying << std::endl;
-    }
 }
 
 void DrumController::pauseSequencer()
 {
-    DrumController::setIsPlayingFalse();
+    setIsPlayingFalse();
     PlaySound(NULL, 0, 0);
 }

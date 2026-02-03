@@ -16,8 +16,11 @@ private:
     bool sequencer[MAX_STEPS];
     int currStep;
     bool isPlaying;
+    int bpm_;
+    std::chrono::time_point<std::chrono::steady_clock> lastStep;
+    std::wstring samplePath;
 public:
-    DrumController();
+    DrumController(const std::wstring& samplePath);
     ~DrumController();
 
     void initSequencer();
@@ -29,10 +32,11 @@ public:
     void setIsPlayingTrue();
 
     //Step to next beat
-    void step(std::chrono::time_point<std::chrono::steady_clock>, std::wstring& samplePath);
+    void step();
+    void setBpm(int bpm);
 
     void playSound(std::wstring& samplePath);
-    void playSequencer(std::wstring& samplePath);
+    void playSequencer();
     void pauseSequencer();
 };
 
