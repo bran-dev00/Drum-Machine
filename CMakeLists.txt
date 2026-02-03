@@ -33,8 +33,13 @@ target_link_libraries(imgui PRIVATE glfw OpenGL::GL)
 
 add_executable(DrumMachine src/main.cpp)
 
-target_link_libraries(DrumMachine PRIVATE imgui glfw OpenGL::GL)
+# Build drum_controller as a static library and expose its headers
+add_library(drum_controller STATIC src/drum_controller.cpp)
+target_include_directories(drum_controller PUBLIC ${CMAKE_SOURCE_DIR}/src)
+
+target_link_libraries(DrumMachine PRIVATE drum_controller imgui glfw OpenGL::GL)
 
 if(WIN32)
-	target_link_libraries(DrumMachine PRIVATE winmm imgui glfw OpenGL::GL)
+	# On Windows also link to winmm and ensure drum_controller is linked
+	target_link_libraries(DrumMachine PRIVATE winmm drum_controller imgui glfw OpenGL::GL)
 endif()
