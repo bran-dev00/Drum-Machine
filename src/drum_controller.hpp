@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <chrono>
 #include <string>
+#include <array>
 
 #define MAX_STEPS 16
 
@@ -13,10 +14,11 @@ using namespace std::chrono_literals;
 class DrumController
 {
 private:
-    bool sequencer[MAX_STEPS];
+    std::array<bool,MAX_STEPS> sequencerArr{};
     int currStep;
     bool isPlaying;
     int bpm_;
+    int beatCounter_;
     std::chrono::time_point<std::chrono::steady_clock> lastStep;
     std::wstring samplePath;
 public:
@@ -26,7 +28,10 @@ public:
     void initSequencer();
     void setSequencerNoteTrue(int index);
     void setSequencerNoteFalse(int index);
-    std::string getSequencer();
+
+    std::array<bool,MAX_STEPS>& getSequencerArray();
+    std::string getSequencerString();
+    
 
     void setIsPlayingFalse();
     void setIsPlayingTrue();

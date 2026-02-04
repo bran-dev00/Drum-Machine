@@ -41,14 +41,14 @@ int main(int argc, char const *argv[])
     ImGui_ImplOpenGL2_Init();
     
     //Init Drum Machine
-    auto sampleWav = (std::filesystem::current_path() / L"assets" / L"Snare.wav").wstring();
+    auto sampleWav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").wstring();
     auto drum_controller  = new DrumController(sampleWav); 
     
     //Test:
-    drum_controller->setSequencerNoteTrue(2);
+ /*    drum_controller->setSequencerNoteTrue(2);
     drum_controller->setSequencerNoteTrue(4);
     drum_controller->setSequencerNoteTrue(6);
-    drum_controller->setSequencerNoteTrue(8);
+    drum_controller->setSequencerNoteTrue(8) */;
     
     
     //time keeper
@@ -57,6 +57,8 @@ int main(int argc, char const *argv[])
 
     int bpm = 120;
     bool isPlayingNow = false;
+    int sequencerSize = drum_controller->getSequencerArray().size();
+
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -76,19 +78,39 @@ int main(int argc, char const *argv[])
         drum_controller->step();
         drum_controller->setBpm(bpm);
 
+        
+        //sequencer string representation
+
         {
             ImGui::Begin("Drum Machine");
 
 
-            for(int i = 0; i< 16; i++){
-                std::string id = "##beats" + std::to_string(i);
-                ImGui::Checkbox(id.c_str(),&isPlayingNow);
+            for(int i = 0; i< sequencerSize; i++){
+                std::string id = "##beat" + std::to_string(i);
+                
+                bool * currBeat = &drum_controller->getSequencerArray().at(i);
+                
+                //Check if the checkbox is marked true and match those changes in the sequencerArray
+                if(ImGui::Checkbox(id.c_str(), currBeat)){
+                    if(drum_controller && i < MAX_STEPS){
+                        if(*currBeat == true){
+                            // std::cout << "True" << std::endl;
+                            drum_controller->setSequencerNoteTrue(i);                    
+                        }else{
+                            // std::cout << "False" << std::endl;
+                            drum_controller->setSequencerNoteFalse(i);
+                        } 
+                    }
+                }
+
                 ImGui::SameLine();
             }
+
             ImGui::NewLine();
             //sample path
             
-            if(ImGui::InputInt("Freq",&bpm, 1, 10)){
+            ImGui::PushItemWidth(100);
+            if(ImGui::InputInt("BPM",&bpm, 1, 10)){
                 
                 
             }
