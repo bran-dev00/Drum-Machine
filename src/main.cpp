@@ -84,7 +84,7 @@ int main(int argc, char const *argv[])
         {
             ImGui::Begin("Drum Machine");
 
-
+            ImGui::SliderInt("##",&drum_controller->getBeatCounter(),1,MAX_STEPS);
             for(int i = 0; i< sequencerSize; i++){
                 std::string id = "##beat" + std::to_string(i);
                 
@@ -94,7 +94,7 @@ int main(int argc, char const *argv[])
                 if(ImGui::Checkbox(id.c_str(), currBeat)){
                     if(drum_controller && i < MAX_STEPS){
                         if(*currBeat == true){
-                            // std::cout << "True" << std::endl;
+                            std::cout << "True"; 
                             drum_controller->setSequencerNoteTrue(i);                    
                         }else{
                             // std::cout << "False" << std::endl;
@@ -114,12 +114,11 @@ int main(int argc, char const *argv[])
                 
                 
             }
-            if(ImGui::Button("Play Sequencer")){
-                drum_controller->playSequencer();
-            }
             
-            if(ImGui::Button("Stop Sequencer")){
-                drum_controller->pauseSequencer();
+            std::string buttonDisplayStatus = drum_controller->getIsPlaying() ? "Pause" : "Play";
+           
+            if(ImGui::Button(buttonDisplayStatus.c_str())){
+                drum_controller->toggleSequencer();
             }
 
             if (ImGui::Button("Play Snare")) {
