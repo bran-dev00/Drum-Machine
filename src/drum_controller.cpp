@@ -2,97 +2,129 @@
 #include <string>
 #include <iostream>
 
-DrumController::DrumController(const std::wstring& samplePath)
-: samplePath(samplePath)
+DrumController::DrumController(const std::wstring &samplePath)
+    : samplePath(samplePath)
 {
-    
     initSequencer();
-    isPlaying = false;
+    isPlaying_ = false;
     lastStep = std::chrono::steady_clock::now();
+    beatCounter_ = 0;
     bpm_ = 120;
-
 }
 
 DrumController::~DrumController() = default;
 
 void DrumController::initSequencer()
 {
-    for (int i = 0; i < MAX_STEPS; ++i)
-        sequencer[i] = false;
+    sequencerArr.fill(false);
 }
 
-void DrumController::setIsPlayingFalse(){
-    isPlaying = false;
-    
-} 
-
-void DrumController::setIsPlayingTrue(){
-    isPlaying = true;
-} 
-
-void DrumController::playSound(std::wstring& samplePath)
+void DrumController::playSound(std::wstring &samplePath)
 {
     PlaySoundW(samplePath.c_str(), NULL, SND_FILENAME | SND_ASYNC);
 }
 
-void DrumController::step(){
+void DrumController::step()
+{
     auto now = std::chrono::steady_clock::now();
-    
-    //TODO: Match time with set bpm
-    std::chrono::duration<double> secondsPerBeat(60.0/bpm_);
+
+    std::chrono::duration<double> secondsPerBeat(60.0 / bpm_);
     auto bpmToMs = std::chrono::duration_cast<std::chrono::milliseconds>(secondsPerBeat);
-    if(isPlaying && std::chrono::duration_cast<std::chrono::milliseconds>(now - lastStep) > bpmToMs){
-        playSound(samplePath);
+
+    if (isPlaying_ && std::chrono::duration_cast<std::chrono::milliseconds>(now - lastStep) > bpmToMs)
+    {
+        // play sound if its marked in the sequencer array
+        if (sequencerArr.at(beatCounter_) == true)
+        {
+            playSound(samplePath);
+        }
         lastStep = now;
-    }else{
+        beatCounter_ = (beatCounter_ + 1) % MAX_STEPS;
+    }
+    else
+    {
         return;
     }
-
 }
 
-void DrumController::setBpm(int bpm){
+void DrumController::setBpm(int bpm)
+{
     bpm_ = bpm;
 }
 
 void DrumController::setSequencerNoteTrue(int index)
 {
-    if (index < 0 || index > MAX_STEPS-1){
+    if (index < 0 || index > MAX_STEPS - 1)
+    {
         return;
     }
-    sequencer[index] = true;
+    sequencerArr[index] = true;
 }
 
 void DrumController::setSequencerNoteFalse(int index)
 {
-    if (index < 0 || index > MAX_STEPS-1){
+    if (index < 0 || index > MAX_STEPS - 1)
+    {
         return;
     }
-    sequencer[index] = false;
+    sequencerArr[index] = false;
 }
 
-std::string DrumController::getSequencer()
+void DrumController::clearSequencer(){
+    sequencerArr.fill(false);
+    beatCounter_ = 0;
+}
+
+int &DrumController::getBeatCounter()
 {
-    std::string output_string = "";
-    
-    for(int i =0; i< MAX_STEPS; i++){
-        if(sequencer[i] == true){
-            output_string += "X";
-        }else{
-            output_string += ".";
+    return this->beatCounter_;
+}
+
+bool DrumController::getIsPlaying()
+{
+    return this->isPlaying_;
+}
+
+// debug string
+std::string DrumController::getSequencerString()
+{
+    std::string output_string = "S ";
+
+    for (int i = 0; i < MAX_STEPS; i++)
+    {
+        if (sequencerArr[i] == true)
+        {
+            output_string += "[X] ";
+        }
+        else
+        {
+            output_string += "[ ] ";
         }
     }
-    
-    return output_string;
 
+    output_string += "E";
+
+    return output_string;
 }
 
-void DrumController::playSequencer() 
+std::array<bool, MAX_STEPS> &DrumController::getSequencerArray()
 {
-    setIsPlayingTrue();
+    return sequencerArr;
+}
+
+void DrumController::playSequencer()
+{
+    isPlaying_ = true;
 }
 
 void DrumController::pauseSequencer()
 {
-    setIsPlayingFalse();
+    isPlaying_ = false;
+    PlaySound(NULL, 0, 0);
+}
+
+void DrumController::toggleSequencer()
+{
+    isPlaying_ = !isPlaying_;
     PlaySound(NULL, 0, 0);
 }
