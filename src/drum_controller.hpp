@@ -14,12 +14,11 @@ class DrumController
 {
 private:
     std::array<bool, MAX_STEPS> sequencerArr{};
-    int currStep;
     bool isPlaying_;
     int bpm_;
     int beatCounter_;
-    std::chrono::time_point<std::chrono::steady_clock> lastStep;
-    std::string samplePath;
+    std::chrono::time_point<std::chrono::steady_clock> lastStep_;
+    std::string samplePath_;
     
     ma_engine engine_;
 
@@ -41,7 +40,6 @@ public:
     void step();
     void setBpm(int bpm);
 
-    // void playSound(std::wstring &samplePath);
     void playSound(std::string &samplePath);
     void playSequencer();
     void pauseSequencer();
