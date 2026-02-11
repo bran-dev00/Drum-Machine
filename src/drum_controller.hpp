@@ -1,12 +1,11 @@
 
 #pragma once
 
-#include <Windows.h>
-#include <mmsystem.h>
 #include <filesystem>
 #include <chrono>
 #include <string>
 #include <array>
+#include "../external/miniaudio/miniaudio.h"
 
 #define MAX_STEPS 16
 
@@ -15,21 +14,22 @@ class DrumController
 {
 private:
     std::array<bool, MAX_STEPS> sequencerArr{};
-    int currStep;
     bool isPlaying_;
     int bpm_;
     int beatCounter_;
-    std::chrono::time_point<std::chrono::steady_clock> lastStep;
-    std::wstring samplePath;
+    std::chrono::time_point<std::chrono::steady_clock> lastStep_;
+    std::string samplePath_;
+    
+    ma_engine engine_;
 
 public:
-    DrumController(const std::wstring &samplePath);
+    DrumController(const std::string &samplePath);
     ~DrumController();
 
     void initSequencer();
     void setSequencerNoteTrue(int index);
     void setSequencerNoteFalse(int index);
-    void clearSequencer();
+    void resetSequencer();
 
     std::array<bool, MAX_STEPS> &getSequencerArray();
     std::string getSequencerString();
@@ -40,7 +40,7 @@ public:
     void step();
     void setBpm(int bpm);
 
-    void playSound(std::wstring &samplePath);
+    void playSound(std::string &samplePath);
     void playSequencer();
     void pauseSequencer();
     void toggleSequencer();

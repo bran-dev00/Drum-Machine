@@ -1,6 +1,3 @@
-#include <Windows.h>
-#include <mmsystem.h>
-
 #include <filesystem>
 #include <stdio.h>
 #include <iostream>
@@ -41,7 +38,7 @@ int main(int argc, char const *argv[])
     ImGui_ImplOpenGL2_Init();
     
     //Init Drum Machine
-    auto sampleWav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").wstring();
+    auto sampleWav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
     auto drum_controller  = new DrumController(sampleWav); 
     
 
@@ -61,7 +58,6 @@ int main(int argc, char const *argv[])
         
         ImGui::ShowDemoWindow();
 
-        // auto sampleWav = (std::filesystem::current_path() / L"assets" / L"Snare.wav").wstring();
         // Apply updated BPM from the UI before advancing the sequencer step
         drum_controller->step();
         drum_controller->setBpm(bpm);
@@ -114,13 +110,14 @@ int main(int argc, char const *argv[])
             }
             
             ImGui::SameLine();
-            if(ImGui::Button("Clear")){
-                drum_controller->clearSequencer();
+            if(ImGui::Button("Reset")){
+                drum_controller->resetSequencer();
             }
 
             if (ImGui::Button("Play Sample")) {
-                PlaySoundW(sampleWav.c_str(), NULL, SND_FILENAME | SND_ASYNC);
+                drum_controller->playSound(sampleWav);
             }
+
 
             ImGui::End();
         }

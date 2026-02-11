@@ -31,11 +31,13 @@ target_include_directories(imgui PUBLIC
 # imgui needs GLFW headers and OpenGL for its backends
 target_link_libraries(imgui PRIVATE glfw OpenGL::GL)
 
-add_executable(DrumMachine src/main.cpp)
+add_executable(DrumMachine src/main.cpp external/miniaudio/miniaudio.cpp)
 
 # Build drum_controller as a static library and expose its headers
 add_library(drum_controller STATIC src/drum_controller.cpp)
 target_include_directories(drum_controller PUBLIC ${CMAKE_SOURCE_DIR}/src)
+
+# add_library(miniaudio STATIC external/miniaudio/miniaudio.cpp)
 
 target_link_libraries(DrumMachine PRIVATE drum_controller imgui glfw OpenGL::GL)
 
