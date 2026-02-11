@@ -2,7 +2,8 @@
 #include <string>
 #include <iostream>
 
-DrumController::DrumController(const std::wstring &samplePath)
+
+DrumController::DrumController(const std::string &samplePath)
     : samplePath(samplePath)
 {
     initSequencer();
@@ -10,6 +11,8 @@ DrumController::DrumController(const std::wstring &samplePath)
     lastStep = std::chrono::steady_clock::now();
     beatCounter_ = 0;
     bpm_ = 120;
+
+    ma_engine_init(NULL, &engine_);
 }
 
 DrumController::~DrumController() = default;
@@ -19,9 +22,15 @@ void DrumController::initSequencer()
     sequencerArr.fill(false);
 }
 
+/* 
 void DrumController::playSound(std::wstring &samplePath)
 {
     PlaySoundW(samplePath.c_str(), NULL, SND_FILENAME | SND_ASYNC);
+}
+ */
+
+void DrumController::playSound(std::string &samplePath){
+    ma_engine_play_sound(&engine_, samplePath.c_str(),NULL);
 }
 
 void DrumController::step()
@@ -36,6 +45,7 @@ void DrumController::step()
         // play sound if its marked in the sequencer array
         if (sequencerArr.at(beatCounter_) == true)
         {
+            // playSound(samplePath);
             playSound(samplePath);
         }
         lastStep = now;
@@ -70,9 +80,10 @@ void DrumController::setSequencerNoteFalse(int index)
     sequencerArr[index] = false;
 }
 
-void DrumController::clearSequencer(){
+void DrumController::resetSequencer(){
     sequencerArr.fill(false);
     beatCounter_ = 0;
+    isPlaying_ = false;
 }
 
 int &DrumController::getBeatCounter()
@@ -120,11 +131,9 @@ void DrumController::playSequencer()
 void DrumController::pauseSequencer()
 {
     isPlaying_ = false;
-    PlaySound(NULL, 0, 0);
 }
 
 void DrumController::toggleSequencer()
 {
     isPlaying_ = !isPlaying_;
-    PlaySound(NULL, 0, 0);
 }
