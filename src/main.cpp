@@ -13,34 +13,34 @@
 int main(int argc, char const *argv[])
 {
 
-// imgui + glfw boilerplate
+    // imgui + glfw boilerplate
     if (!glfwInit())
         return 1;
 
     // Create window with OpenGL context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Drum Machine", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(1280, 720, "Drum Machine", NULL, NULL);
     if (window == NULL)
     {
         glfwTerminate();
         return 1;
     }
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); 
+    glfwSwapInterval(1);
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
     ImGui::StyleColorsDark();
 
-    // Backend Bindings  
+    // Backend Bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL2_Init();
-    
-    //Init Drum Machine
+
+    // Init Drum Machine
     auto sampleWav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
-    auto drum_controller  = new DrumController(sampleWav); 
-    
+    auto drum_controller = new DrumController(sampleWav);
 
     int bpm = 120;
     bool isPlayingNow = false;
@@ -55,69 +55,89 @@ int main(int argc, char const *argv[])
         ImGui_ImplOpenGL2_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        
+
         ImGui::ShowDemoWindow();
 
         // Apply updated BPM from the UI before advancing the sequencer step
-        drum_controller->step();
         drum_controller->setBpm(bpm);
-        
+        drum_controller->step();
 
         {
             ImGui::Begin("Drum Machine");
 
-            
-            ImGui::PushItemWidth((16 * 16) *2);
-            ImGui::SliderInt("##",&drum_controller->getBeatCounter(),1,MAX_STEPS);
-            
-            ImGui::SeparatorText("Track 1");
-            for(int i = 0; i< sequencerSize; i++){
-                std::string id = "##beat" + std::to_string(i);
-                
-                bool * currBeat = &drum_controller->getSequencerArray().at(i);
-                
-                //Check if the checkbox is marked true and match those changes in the sequencerArray
-                if(ImGui::Checkbox(id.c_str(), currBeat)){
-                    if(drum_controller && i < MAX_STEPS){
-                        if(*currBeat == true){
-                            // std::cout << "True"; 
-                            drum_controller->setSequencerNoteTrue(i);                    
-                        }else{
-                            // std::cout << "False" << std::endl;
-                            drum_controller->setSequencerNoteFalse(i);
-                        } 
+            ImGui::PushItemWidth((16 * 16) * 2);
+            ImGui::SliderInt("##", &drum_controller->getBeatCounter(), 1, MAX_STEPS);
+
+            auto &tracks = drum_controller->getTracks();
+            int numTracks = static_cast<int>(tracks.size());
+
+            for (int i = 0; i < numTracks; ++i)
+            {
+                ImGui::SeparatorText((std::string("Track ") + std::to_string(i + 1)).c_str());
+                Track_t &track = drum_controller->getTrackByIndex(i);
+
+                for (int j = 0; j < MAX_STEPS; ++j)
+                {
+                    std::string id = std::string("##track_") + std::to_string(i) + "_beat_" + std::to_string(j);
+
+                    if (ImGui::Checkbox(id.c_str(), &track[j]))
+                    {
+                        if (drum_controller && j < MAX_STEPS)
+                        {
+                            if (track[j])
+                            {
+                                drum_controller->setSequencerNoteTrue(track, j);
+                            }
+                            else
+                            {
+                                drum_controller->setSequencerNoteFalse(track, j);
+                            }
+                        }
                     }
+                    ImGui::SameLine();
                 }
 
+                // Individual Reset Button
                 ImGui::SameLine();
-            }
-            
-
-            ImGui::NewLine();
-            
-            ImGui::PushItemWidth(100);
-            if(ImGui::InputInt("BPM",&bpm, 1, 10)){
+                // ImGui::PushID("##Reset_Button" + std::to_string(i));
+                ImGui::PushID(i);
                 
+                if (ImGui::Button("Reset"))
+                {
+                    drum_controller->resetSequencer(track);
+                }
+                ImGui::PopID();
+                ImGui::NewLine();
+                ImGui::NewLine();
             }
 
             ImGui::NewLine();
-            
+
+            ImGui::PushItemWidth(100);
+            if (ImGui::InputInt("BPM", &bpm, 1, 10))
+            {
+            }
+
+            ImGui::NewLine();
+
             // Buttons
             std::string buttonDisplayStatus = drum_controller->getIsPlaying() ? "Pause" : "Play";
 
-            if(ImGui::Button(buttonDisplayStatus.c_str())){
+            if (ImGui::Button(buttonDisplayStatus.c_str()))
+            {
                 drum_controller->toggleSequencer();
             }
-            
+
             ImGui::SameLine();
-            if(ImGui::Button("Reset")){
-                drum_controller->resetSequencer();
+            if (ImGui::Button("Reset All"))
+            {
+                drum_controller->resetAllTracks();
             }
 
-            if (ImGui::Button("Play Sample")) {
+            if (ImGui::Button("Play Sample"))
+            {
                 drum_controller->playSound(sampleWav);
             }
-
 
             ImGui::End();
         }
