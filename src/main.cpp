@@ -9,6 +9,7 @@
 #include <GLFW/glfw3.h>
 
 #include "drum_controller.hpp"
+#include "drum_view.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -41,6 +42,7 @@ int main(int argc, char const *argv[])
     // Init Drum Machine
     auto sampleWav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
     auto drum_controller = new DrumController(sampleWav);
+    auto drum_view = new DrumView(*drum_controller);
 
     int bpm = 120;
     bool isPlayingNow = false;
@@ -141,6 +143,9 @@ int main(int argc, char const *argv[])
 
             ImGui::End();
         }
+        
+        //TEST VIEW
+        drum_view->draw();
 
         // Rendering
         ImGui::Render();

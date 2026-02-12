@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <filesystem>
@@ -10,20 +9,20 @@
 #define MAX_STEPS 16
 
 using namespace std::chrono_literals;
-using Track_t = std::array<bool,MAX_STEPS>;
+using Track_t = std::array<bool, MAX_STEPS>;
 
 class DrumController
 {
 private:
     std::array<bool, MAX_STEPS> sequencerArr{};
 
-    std::array<Track_t,2> tracks_ {};
+    std::array<Track_t, 2> tracks_{};
     bool isPlaying_;
     int bpm_;
     int beatCounter_;
     std::chrono::time_point<std::chrono::steady_clock> lastStep_;
     std::string samplePath_;
-    
+
     ma_engine engine_;
 
 public:
