@@ -68,6 +68,10 @@ void DrumController::setBpm(int bpm)
     bpm_ = bpm;
 }
 
+int DrumController::getBpm(){
+    return bpm_;
+}
+
 void DrumController::setSequencerNoteTrue(Track_t &track, int index)
 {
     if (index < 0 || index > MAX_STEPS - 1)

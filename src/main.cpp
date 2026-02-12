@@ -44,10 +44,6 @@ int main(int argc, char const *argv[])
     auto drum_controller = new DrumController(sampleWav);
     auto drum_view = new DrumView(*drum_controller);
 
-    int bpm = 120;
-    bool isPlayingNow = false;
-    int sequencerSize = drum_controller->getSequencerArray().size();
-
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -60,91 +56,8 @@ int main(int argc, char const *argv[])
 
         ImGui::ShowDemoWindow();
 
-        // Apply updated BPM from the UI before advancing the sequencer step
-        drum_controller->setBpm(bpm);
         drum_controller->step();
-
-        {
-            ImGui::Begin("Drum Machine");
-
-            ImGui::PushItemWidth((16 * 16) * 2);
-            ImGui::SliderInt("##", &drum_controller->getBeatCounter(), 1, MAX_STEPS);
-
-            auto &tracks = drum_controller->getTracks();
-            int numTracks = static_cast<int>(tracks.size());
-
-            for (int i = 0; i < numTracks; ++i)
-            {
-                ImGui::SeparatorText((std::string("Track ") + std::to_string(i + 1)).c_str());
-                Track_t &track = drum_controller->getTrackByIndex(i);
-
-                for (int j = 0; j < MAX_STEPS; ++j)
-                {
-                    std::string id = std::string("##track_") + std::to_string(i) + "_beat_" + std::to_string(j);
-
-                    if (ImGui::Checkbox(id.c_str(), &track[j]))
-                    {
-                        if (drum_controller && j < MAX_STEPS)
-                        {
-                            if (track[j])
-                            {
-                                drum_controller->setSequencerNoteTrue(track, j);
-                            }
-                            else
-                            {
-                                drum_controller->setSequencerNoteFalse(track, j);
-                            }
-                        }
-                    }
-                    ImGui::SameLine();
-                }
-
-                // Individual Reset Button
-                ImGui::SameLine();
-                // ImGui::PushID("##Reset_Button" + std::to_string(i));
-                ImGui::PushID(i);
-                
-                if (ImGui::Button("Reset"))
-                {
-                    drum_controller->resetSequencer(track);
-                }
-                ImGui::PopID();
-                ImGui::NewLine();
-                ImGui::NewLine();
-            }
-
-            ImGui::NewLine();
-
-            ImGui::PushItemWidth(100);
-            if (ImGui::InputInt("BPM", &bpm, 1, 10))
-            {
-            }
-
-            ImGui::NewLine();
-
-            // Buttons
-            std::string buttonDisplayStatus = drum_controller->getIsPlaying() ? "Pause" : "Play";
-
-            if (ImGui::Button(buttonDisplayStatus.c_str()))
-            {
-                drum_controller->toggleSequencer();
-            }
-
-            ImGui::SameLine();
-            if (ImGui::Button("Reset All"))
-            {
-                drum_controller->resetAllTracks();
-            }
-
-            if (ImGui::Button("Play Sample"))
-            {
-                drum_controller->playSound(sampleWav);
-            }
-
-            ImGui::End();
-        }
-        
-        //TEST VIEW
+        //Draw UI
         drum_view->draw();
 
         // Rendering

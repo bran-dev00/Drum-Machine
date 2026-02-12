@@ -48,6 +48,7 @@ public:
 
     void step();
     void setBpm(int bpm);
+    int getBpm();
 
     void playSound(std::string &samplePath);
     void playSequencer();
