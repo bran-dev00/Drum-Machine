@@ -88,10 +88,17 @@ void DrumController::setSequencerNoteFalse(Track_t &track, int index)
     // sequencerArr[index] = false;
 }
 
-void DrumController::resetSequencer(){
-    sequencerArr.fill(false);
-    beatCounter_ = 0;
+void DrumController::resetSequencer(Track_t &track){
+    track.fill(false);
+}
+
+void DrumController::resetAllTracks(){
+    
+    for(size_t i = 0; i < tracks_.size(); i++){
+        tracks_[i].fill(false);
+    }
     isPlaying_ = false;
+    beatCounter_ = 0;
 }
 
 int &DrumController::getBeatCounter()

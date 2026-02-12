@@ -33,7 +33,9 @@ public:
     void initSequencer();
     void setSequencerNoteTrue(Track_t &track, int index);
     void setSequencerNoteFalse(Track_t &track, int index);
-    void resetSequencer();
+
+    void resetSequencer(Track_t &track);
+    void resetAllTracks();
 
     std::array<bool, MAX_STEPS> &getSequencerArray();
 
