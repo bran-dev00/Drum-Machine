@@ -44,6 +44,16 @@ void DrumController::step()
         {
             playSound(samplePath_);
         }
+        
+        //TODO Refactor: Testing
+        if(tracks_[0].at(beatCounter_) == true && !tracks_.empty()){
+            playSound(samplePath_);
+        }
+
+        if(tracks_[1].at(beatCounter_) == true && !tracks_.empty()){
+            playSound(samplePath_);
+        }
+
         lastStep_ = now;
         beatCounter_ = (beatCounter_ + 1) % MAX_STEPS;
     }
