@@ -10,10 +10,14 @@
 #define MAX_STEPS 16
 
 using namespace std::chrono_literals;
+using Track_t = std::array<bool,MAX_STEPS>;
+
 class DrumController
 {
 private:
     std::array<bool, MAX_STEPS> sequencerArr{};
+
+    std::array<Track_t,2> tracks_ {};
     bool isPlaying_;
     int bpm_;
     int beatCounter_;
@@ -27,11 +31,15 @@ public:
     ~DrumController();
 
     void initSequencer();
-    void setSequencerNoteTrue(int index);
-    void setSequencerNoteFalse(int index);
+    void setSequencerNoteTrue(Track_t &track, int index);
+    void setSequencerNoteFalse(Track_t &track, int index);
     void resetSequencer();
 
     std::array<bool, MAX_STEPS> &getSequencerArray();
+
+    std::array<Track_t, 2> &getTracks();
+    Track_t &getTrackByIndex(int index);
+
     std::string getSequencerString();
 
     int &getBeatCounter();
