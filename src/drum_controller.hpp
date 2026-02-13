@@ -25,7 +25,6 @@ private:
     std::chrono::time_point<std::chrono::steady_clock> lastStep_;
     std::string samplePath_;
 
-    // std::vector<ma_sound> samples_;
     std::vector<std::string> samples_;
     ma_engine engine_;
     

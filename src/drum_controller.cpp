@@ -19,25 +19,22 @@ DrumController::~DrumController() = default;
 void DrumController::loadInitialSamples()
 {
     // Default Samples
-
-    // Hard Coded for now
-    auto sample_1 = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
-    auto sample_2 = (std::filesystem::current_path() / L"assets" / L"Snare.wav").string();
-    auto sample_3 = (std::filesystem::current_path() / L"assets" / L"Kick.wav").string();
-    auto sample_4 = (std::filesystem::current_path() / L"assets" / L"HighHat.wav").string();
-
-    samples_.push_back(sample_1);
-    samples_.push_back(sample_2);
-    samples_.push_back(sample_3);
-    samples_.push_back(sample_4);
-}
+    std::string file_path_base = (std::filesystem::current_path()/L"assets").string();
+    std::string sample_path;
+    
+    for (const auto &entry: std::filesystem::directory_iterator(file_path_base)){
+        std::cout << "file: " << entry.path() << std::endl;
+        std::string file_name = entry.path().string();
+        samples_.push_back(file_name);
+    }
+} 
 
 void DrumController::initSequencer()
 {
     tracks_[0] = DrumTrackModel("track_1", samples_.at(0));
     tracks_[1] = DrumTrackModel("track_2", samples_.at(1));
-    tracks_[2] = DrumTrackModel("track_2", samples_.at(2));
-    tracks_[3] = DrumTrackModel("track_2", samples_.at(3));
+    tracks_[2] = DrumTrackModel("track_3", samples_.at(2));
+    tracks_[3] = DrumTrackModel("track_4", samples_.at(3));
 }
 
 void DrumController::playSound(std::string &samplePath)
