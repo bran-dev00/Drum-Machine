@@ -5,6 +5,11 @@ DrumTrackModel::DrumTrackModel(const std::string &name, const std::string &sampl
     sequencer_.fill(false);
 }
 
+DrumTrackModel::DrumTrackModel() : samplePath_(), name_()
+{
+    sequencer_.fill(false);
+}
+
 DrumTrackModel::~DrumTrackModel() = default;
 
 std::string DrumTrackModel::getName()
@@ -17,7 +22,8 @@ std::string DrumTrackModel::getSample()
     return samplePath_;
 }
 
-Track_t DrumTrackModel::getTrackSequencer(){
+Track_t &DrumTrackModel::getTrackSequencer()
+{
     return sequencer_;
 }
 
@@ -28,6 +34,5 @@ void DrumTrackModel::setName(std::string &newName)
 
 void DrumTrackModel::setSample(std::string &samplePath)
 {
-
     samplePath_ = samplePath;
 }

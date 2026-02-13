@@ -4,32 +4,38 @@
 #include <chrono>
 #include <string>
 #include <array>
+#include <vector>
 #include "../external/miniaudio/miniaudio.h"
+#include "drum_track_model.hpp"
 
 #define MAX_STEPS 16
 
 using namespace std::chrono_literals;
 using Track_t = std::array<bool, MAX_STEPS>;
 
+
 class DrumController
 {
 private:
-    std::array<bool, MAX_STEPS> sequencerArr{};
+    std::array<DrumTrackModel, 4> tracks_;
 
-    std::array<Track_t, 2> tracks_{};
     bool isPlaying_;
     int bpm_;
     int beatCounter_;
     std::chrono::time_point<std::chrono::steady_clock> lastStep_;
     std::string samplePath_;
 
+    std::vector<std::string> samples_;
     ma_engine engine_;
+    
 
 public:
-    DrumController(const std::string &samplePath);
+    DrumController();
     ~DrumController();
 
     void initSequencer();
+    void loadInitialSamples();
+
     void setSequencerNoteTrue(Track_t &track, int index);
     void setSequencerNoteFalse(Track_t &track, int index);
 
@@ -38,10 +44,8 @@ public:
 
     std::array<bool, MAX_STEPS> &getSequencerArray();
 
-    std::array<Track_t, 2> &getTracks();
-    Track_t &getTrackByIndex(int index);
-
-    std::string getSequencerString();
+    std::array<DrumTrackModel, 4> &getTracks();
+    DrumTrackModel &getTrackByIndex(int index);
 
     int &getBeatCounter();
     bool getIsPlaying();

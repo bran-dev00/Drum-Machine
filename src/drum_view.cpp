@@ -24,8 +24,9 @@ void DrumView::draw()
 
         for (int i = 0; i < num_tracks; ++i)
         {
-            ImGui::SeparatorText((std::string("Track ") + std::to_string(i + 1)).c_str());
-            Track_t &track = drum_controller_.getTrackByIndex(i);
+            std::string track_name = tracks[i].getName();
+            ImGui::SeparatorText(track_name.c_str());
+            Track_t &track = tracks.at(i).getTrackSequencer();
 
             for (int j = 0; j < MAX_STEPS; ++j)
             {
@@ -33,7 +34,7 @@ void DrumView::draw()
 
                 if (ImGui::Checkbox(id.c_str(), &track[j]))
                 {
-                    if (&drum_controller_ && j < MAX_STEPS)
+                    if (j < MAX_STEPS)
                     {
                         if (track[j])
                         {
