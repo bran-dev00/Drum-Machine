@@ -2,32 +2,48 @@
 #include <string>
 #include <iostream>
 
-
-DrumController::DrumController(const std::string &samplePath)
-    : samplePath_(samplePath)
+DrumController::DrumController()
 {
-    initSequencer();
     isPlaying_ = false;
     lastStep_ = std::chrono::steady_clock::now();
     beatCounter_ = 0;
     bpm_ = 120;
 
     ma_engine_init(NULL, &engine_);
+    loadInitialSamples();
+    initSequencer();
+
 }
 
 DrumController::~DrumController() = default;
 
-void DrumController::initSequencer()
+void DrumController::loadInitialSamples()
 {
-    sequencerArr.fill(false);
+    // Default Samples
+
+    // Hard Coded for now
+    auto sample_1 = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
+    auto sample_2 = (std::filesystem::current_path() / L"assets" / L"Snare.wav").string();
+    auto sample_3 = (std::filesystem::current_path() / L"assets" / L"Kick.wav").string();
+    auto sample_4 = (std::filesystem::current_path() / L"assets" / L"HighHat.wav").string();
+
+    samples_.push_back(sample_1);
+    samples_.push_back(sample_2);
+    samples_.push_back(sample_3);
+    samples_.push_back(sample_4);
     
-    //TODO: Refactor
-    tracks_.at(0).fill(false);
-    tracks_.at(1).fill(false);
+    // ma_sound_init_from_file(&engine,sample_1,MA_SOUND_FLAG_DECODE, pGroup, NULL, &sound);
 }
 
-void DrumController::playSound(std::string &samplePath){
-    ma_engine_play_sound(&engine_, samplePath.c_str(),NULL);
+void DrumController::initSequencer()
+{
+    tracks_[0] = DrumTrackModel("track_1", samples_.at(0));
+    tracks_[1] = DrumTrackModel("track_2", samples_.at(2));
+
+}
+void DrumController::playSound(std::string &samplePath)
+{
+    ma_engine_play_sound(&engine_, samplePath.c_str(), NULL);
 }
 
 void DrumController::step()
@@ -40,18 +56,18 @@ void DrumController::step()
     if (isPlaying_ && std::chrono::duration_cast<std::chrono::milliseconds>(now - lastStep_) > bpmToMs)
     {
         // play sound if its marked in the sequencer array
-        if (sequencerArr.at(beatCounter_) == true)
+        if (tracks_[0].getTrackSequencer().at(beatCounter_) == true && !tracks_.empty())
         {
-            playSound(samplePath_);
+            auto sample = tracks_[0].getSample();
+            // std::cout << "sample in track 1: " << sample <<std::endl;
+            playSound(sample);
         }
         
-        //TODO Refactor: Testing
-        if(tracks_[0].at(beatCounter_) == true && !tracks_.empty()){
-            playSound(samplePath_);
-        }
-
-        if(tracks_[1].at(beatCounter_) == true && !tracks_.empty()){
-            playSound(samplePath_);
+        if (tracks_[1].getTrackSequencer().at(beatCounter_) == true && !tracks_.empty())
+        {
+            auto sample = tracks_[1].getSample();
+            // std::cout << "sample in track 2: " << sample <<std::endl;
+            playSound(sample);
         }
 
         lastStep_ = now;
@@ -68,7 +84,8 @@ void DrumController::setBpm(int bpm)
     bpm_ = bpm;
 }
 
-int DrumController::getBpm(){
+int DrumController::getBpm()
+{
     return bpm_;
 }
 
@@ -79,7 +96,6 @@ void DrumController::setSequencerNoteTrue(Track_t &track, int index)
         return;
     }
     track[index] = true;
-    // sequencerArr[index] = true;
 }
 
 void DrumController::setSequencerNoteFalse(Track_t &track, int index)
@@ -89,17 +105,19 @@ void DrumController::setSequencerNoteFalse(Track_t &track, int index)
         return;
     }
     track[index] = false;
-    // sequencerArr[index] = false;
 }
 
-void DrumController::resetSequencer(Track_t &track){
+void DrumController::resetSequencer(Track_t &track)
+{
     track.fill(false);
 }
 
-void DrumController::resetAllTracks(){
-    
-    for(size_t i = 0; i < tracks_.size(); i++){
-        tracks_[i].fill(false);
+void DrumController::resetAllTracks()
+{
+
+    for (size_t i = 0; i < tracks_.size(); i++)
+    {
+        tracks_[i].getTrackSequencer().fill(false);
     }
     isPlaying_ = false;
     beatCounter_ = 0;
@@ -115,44 +133,19 @@ bool DrumController::getIsPlaying()
     return this->isPlaying_;
 }
 
-std::array<Track_t, 2> &DrumController::getTracks(){
+std::array<DrumTrackModel, 2> &DrumController::getTracks()
+{
     return tracks_;
 }
 
-Track_t &DrumController::getTrackByIndex(int index){
-        if (index < 0 || index >= static_cast<int>(tracks_.size())) {
-            throw "index out of bounds";
-        }
-
-        return tracks_.at(index);
-   
-}
-
-// debug string
-std::string DrumController::getSequencerString()
+DrumTrackModel &DrumController::getTrackByIndex(int index)
 {
-    std::string output_string = "S ";
-
-    for (int i = 0; i < MAX_STEPS; i++)
+    if (index < 0 || index >= static_cast<int>(tracks_.size()))
     {
-        if (sequencerArr[i] == true)
-        {
-            output_string += "[X] ";
-        }
-        else
-        {
-            output_string += "[ ] ";
-        }
+        throw "index out of bounds";
     }
 
-    output_string += "E";
-
-    return output_string;
-}
-
-std::array<bool, MAX_STEPS> &DrumController::getSequencerArray()
-{
-    return sequencerArr;
+    return tracks_.at(index);
 }
 
 void DrumController::playSequencer()

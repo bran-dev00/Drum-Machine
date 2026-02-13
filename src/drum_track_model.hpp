@@ -17,11 +17,12 @@ private:
 
 public:
     DrumTrackModel(const std::string &name, const std::string &samplePath);
+    DrumTrackModel();
     ~DrumTrackModel();
     
     std::string getName();
     std::string getSample();
-    Track_t getTrackSequencer();
+    Track_t &getTrackSequencer();
     
     void setName(std::string &newName);
     void setSample(std::string &samplePath);
