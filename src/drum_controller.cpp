@@ -12,7 +12,6 @@ DrumController::DrumController()
     ma_engine_init(NULL, &engine_);
     loadInitialSamples();
     initSequencer();
-
 }
 
 DrumController::~DrumController() = default;
@@ -31,16 +30,16 @@ void DrumController::loadInitialSamples()
     samples_.push_back(sample_2);
     samples_.push_back(sample_3);
     samples_.push_back(sample_4);
-    
-    // ma_sound_init_from_file(&engine,sample_1,MA_SOUND_FLAG_DECODE, pGroup, NULL, &sound);
 }
 
 void DrumController::initSequencer()
 {
     tracks_[0] = DrumTrackModel("track_1", samples_.at(0));
-    tracks_[1] = DrumTrackModel("track_2", samples_.at(2));
-
+    tracks_[1] = DrumTrackModel("track_2", samples_.at(1));
+    tracks_[2] = DrumTrackModel("track_2", samples_.at(2));
+    tracks_[3] = DrumTrackModel("track_2", samples_.at(3));
 }
+
 void DrumController::playSound(std::string &samplePath)
 {
     ma_engine_play_sound(&engine_, samplePath.c_str(), NULL);
@@ -62,13 +61,26 @@ void DrumController::step()
             // std::cout << "sample in track 1: " << sample <<std::endl;
             playSound(sample);
         }
-        
+
         if (tracks_[1].getTrackSequencer().at(beatCounter_) == true && !tracks_.empty())
         {
             auto sample = tracks_[1].getSample();
             // std::cout << "sample in track 2: " << sample <<std::endl;
             playSound(sample);
         }
+        if (tracks_[2].getTrackSequencer().at(beatCounter_) == true && !tracks_.empty())
+        {
+            auto sample = tracks_[2].getSample();
+            // std::cout << "sample in track 2: " << sample <<std::endl;
+            playSound(sample);
+        }
+        if (tracks_[3].getTrackSequencer().at(beatCounter_) == true && !tracks_.empty())
+        {
+            auto sample = tracks_[3].getSample();
+            // std::cout << "sample in track 2: " << sample <<std::endl;
+            playSound(sample);
+        }
+
 
         lastStep_ = now;
         beatCounter_ = (beatCounter_ + 1) % MAX_STEPS;
@@ -133,7 +145,7 @@ bool DrumController::getIsPlaying()
     return this->isPlaying_;
 }
 
-std::array<DrumTrackModel, 2> &DrumController::getTracks()
+std::array<DrumTrackModel, 4> &DrumController::getTracks()
 {
     return tracks_;
 }

@@ -17,7 +17,7 @@ using Track_t = std::array<bool, MAX_STEPS>;
 class DrumController
 {
 private:
-    std::array<DrumTrackModel, 2> tracks_;
+    std::array<DrumTrackModel, 4> tracks_;
 
     bool isPlaying_;
     int bpm_;
@@ -45,7 +45,7 @@ public:
 
     std::array<bool, MAX_STEPS> &getSequencerArray();
 
-    std::array<DrumTrackModel, 2> &getTracks();
+    std::array<DrumTrackModel, 4> &getTracks();
     DrumTrackModel &getTrackByIndex(int index);
 
     int &getBeatCounter();
