@@ -24,7 +24,8 @@ void DrumView::draw()
 
         for (int i = 0; i < num_tracks; ++i)
         {
-            ImGui::SeparatorText((std::string("Track ") + std::to_string(i + 1)).c_str());
+            std::string track_name = tracks[i].getName();
+            ImGui::SeparatorText(track_name.c_str());
             Track_t &track = tracks.at(i).getTrackSequencer();
 
             for (int j = 0; j < MAX_STEPS; ++j)

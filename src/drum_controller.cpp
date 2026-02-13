@@ -19,22 +19,39 @@ DrumController::~DrumController() = default;
 void DrumController::loadInitialSamples()
 {
     // Default Samples
-    std::string file_path_base = (std::filesystem::current_path()/L"assets").string();
+    std::string file_path_base = (std::filesystem::current_path() / L"assets").string();
     std::string sample_path;
-    
-    for (const auto &entry: std::filesystem::directory_iterator(file_path_base)){
-        std::cout << "file: " << entry.path() << std::endl;
+
+    for (const auto &entry : std::filesystem::directory_iterator(file_path_base))
+    {
+        // std::cout << "file: " << entry.path() << std::endl;
         std::string file_name = entry.path().string();
         samples_.push_back(file_name);
     }
-} 
+}
+
+// String Helper Function
+static std::string ExtractSampleName(std::string file_path)
+{
+
+    std::string output_str;
+    output_str = file_path.erase(0, file_path.find_last_of("\\") + 1);
+    output_str = output_str.erase(output_str.find_first_of("."));
+
+    return output_str;
+}
 
 void DrumController::initSequencer()
 {
-    tracks_[0] = DrumTrackModel("track_1", samples_.at(0));
-    tracks_[1] = DrumTrackModel("track_2", samples_.at(1));
-    tracks_[2] = DrumTrackModel("track_3", samples_.at(2));
-    tracks_[3] = DrumTrackModel("track_4", samples_.at(3));
+
+    for (size_t i = 0; i < tracks_.size(); i++)
+    {
+        std::string track_name;
+
+        track_name = ExtractSampleName(samples_[i]);
+
+        tracks_[i] = DrumTrackModel(track_name, samples_[i]);
+    }
 }
 
 void DrumController::playSound(std::string &samplePath)
@@ -77,7 +94,6 @@ void DrumController::step()
             // std::cout << "sample in track 2: " << sample <<std::endl;
             playSound(sample);
         }
-
 
         lastStep_ = now;
         beatCounter_ = (beatCounter_ + 1) % MAX_STEPS;
