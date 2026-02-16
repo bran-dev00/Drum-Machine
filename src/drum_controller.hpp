@@ -27,6 +27,7 @@ private:
 
     std::vector<std::string> samples_;
     ma_engine engine_;
+    float volume_;
     
 
 public:
@@ -53,6 +54,9 @@ public:
     void step();
     void setBpm(int bpm);
     int getBpm();
+    
+    void setVolume(float value);
+    float getVolume();
 
     void playSound(std::string &samplePath);
     void playSequencer();

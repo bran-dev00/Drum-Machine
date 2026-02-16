@@ -1,7 +1,6 @@
 #include "drum_view.hpp"
 #include "imgui.h"
 
-
 DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
 {
 }
@@ -10,9 +9,10 @@ DrumView::~DrumView() = default;
 
 void DrumView::draw()
 {
-    //Setup
+    // Setup
     auto sampleWav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
     int bpm = drum_controller_.getBpm();
+    float volume = drum_controller_.getVolume();
 
     {
         ImGui::Begin("Drum View");
@@ -20,7 +20,7 @@ void DrumView::draw()
         ImGui::PushItemWidth((16 * 16) * 2);
         ImGui::SliderInt("##", &drum_controller_.getBeatCounter(), 1, MAX_STEPS);
         auto &tracks = drum_controller_.getTracks();
-        int num_tracks= static_cast<int>(tracks.size());
+        int num_tracks = static_cast<int>(tracks.size());
 
         for (int i = 0; i < num_tracks; ++i)
         {
@@ -89,6 +89,13 @@ void DrumView::draw()
         {
             drum_controller_.playSound(sampleWav);
         }
+
+        // Volume
+        if (ImGui::SliderFloat("Volume", &volume, 0, 5))
+        {
+            drum_controller_.setVolume(volume);
+        }
+
         ImGui::End();
     }
 }

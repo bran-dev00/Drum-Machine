@@ -104,6 +104,19 @@ void DrumController::step()
     }
 }
 
+void DrumController::setVolume(float value){
+    if(value < 0){
+        volume_ = 0;
+    }
+    //TODO: Volume Limit
+    volume_ = value;
+    ma_engine_set_volume(&engine_,value);
+}
+
+float DrumController::getVolume(){
+    return volume_;
+}
+
 void DrumController::setBpm(int bpm)
 {
     bpm_ = bpm;
