@@ -74,9 +74,10 @@ void DrumView::draw()
         styles_.WindowPadding = ImVec2(10.0f, 10.0f);
         ImVec2 window_size = ImGui::GetWindowSize();
 
-        // Width Offset
-        // ImGui::SetCursorPosX(100.0f);
-        ImGui::PushItemWidth(window_size.x);
+        // Beat Indicator
+        ImGui::SetCursorPosX(10.0f);
+        float checkbox_width = ImGui::GetFrameHeight() * 2;
+        ImGui::PushItemWidth((checkbox_width * MAX_STEPS) + 40.0f);
         ImGui::SliderInt("##", &drum_controller_.getBeatCounter(), 1, MAX_STEPS);
 
         auto &tracks = drum_controller_.getTracks();
