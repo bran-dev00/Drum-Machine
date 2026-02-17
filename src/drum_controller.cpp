@@ -68,31 +68,16 @@ void DrumController::step()
 
     if (isPlaying_ && std::chrono::duration_cast<std::chrono::milliseconds>(now - lastStep_) > bpmToMs)
     {
-        // play sound if its marked in the sequencer array
-        if (tracks_[0].getTrackSequencer().at(beatCounter_) == true && !tracks_.empty())
+        for (size_t i = 0; i < NUM_TRACKS; i++)
         {
-            auto sample = tracks_[0].getSample();
-            // std::cout << "sample in track 1: " << sample <<std::endl;
-            playSound(sample);
-        }
+            auto &track = tracks_[i];
+            auto sequencer = track.getTrackSequencer();
+            auto sample = track.getSample();
 
-        if (tracks_[1].getTrackSequencer().at(beatCounter_) == true && !tracks_.empty())
-        {
-            auto sample = tracks_[1].getSample();
-            // std::cout << "sample in track 2: " << sample <<std::endl;
-            playSound(sample);
-        }
-        if (tracks_[2].getTrackSequencer().at(beatCounter_) == true && !tracks_.empty())
-        {
-            auto sample = tracks_[2].getSample();
-            // std::cout << "sample in track 2: " << sample <<std::endl;
-            playSound(sample);
-        }
-        if (tracks_[3].getTrackSequencer().at(beatCounter_) == true && !tracks_.empty())
-        {
-            auto sample = tracks_[3].getSample();
-            // std::cout << "sample in track 2: " << sample <<std::endl;
-            playSound(sample);
+            if (sequencer.at(beatCounter_) == true && !sequencer.empty())
+            {
+                playSound(sample);
+            }
         }
 
         lastStep_ = now;
@@ -104,16 +89,19 @@ void DrumController::step()
     }
 }
 
-void DrumController::setVolume(float value){
-    if(value < 0){
+void DrumController::setVolume(float value = .5f)
+{
+    if (value < 0)
+    {
         volume_ = 0;
     }
-    //TODO: Volume Limit
+    // TODO: Volume Limit
     volume_ = value;
-    ma_engine_set_volume(&engine_,value);
+    ma_engine_set_volume(&engine_, value);
 }
 
-float DrumController::getVolume(){
+float DrumController::getVolume()
+{
     return volume_;
 }
 
@@ -171,7 +159,7 @@ bool DrumController::getIsPlaying()
     return this->isPlaying_;
 }
 
-std::array<DrumTrackModel, 4> &DrumController::getTracks()
+std::array<DrumTrackModel, NUM_TRACKS> &DrumController::getTracks()
 {
     return tracks_;
 }

@@ -106,9 +106,12 @@ void DrumView::draw()
     // Styling
     styles_.FrameRounding = 3.0f;
     {
-        ImGui::Begin("Drum View", NULL, ImGuiWindowFlags_NoResize);
+        ImGui::SetWindowSize(ImVec2(743, 905));
+        ImGui::Begin("Drum View", NULL);
         styles_.WindowPadding = ImVec2(10.0f, 10.0f);
         ImVec2 window_size = ImGui::GetWindowSize();
+
+        // std::cout << window_size.x << "," << window_size.y << "\n";
 
         // Beat Indicator
         ImGui::SetCursorPosX(10.0f);
