@@ -55,20 +55,56 @@ void DrumView::drawTrack(int track_idx, Track_t &track, std::array<float, MAX_ST
     }
 }
 
+void DrumView::drawSubMenu()
+{
+    int bpm = drum_controller_.getBpm();
+    float volume = drum_controller_.getVolume();
+    auto sample_wav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
+
+    auto window_size = ImGui::GetWindowSize();
+    {
+        ImGui::BeginChild("Basic Controls", ImVec2(window_size.x / 4, window_size.y / 5));
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("BPM");
+        ImGui::SameLine();
+        if (ImGui::InputInt("##BPM", &bpm, 1, 10))
+        {
+            drum_controller_.setBpm(bpm);
+        }
+
+        ImGui::NewLine();
+
+        // Buttons
+        std::string buttonDisplayStatus = drum_controller_.getIsPlaying() ? "Pause" : "Play";
+        if (ImGui::Button(buttonDisplayStatus.c_str()))
+        {
+            drum_controller_.toggleSequencer();
+        }
+
+        if (ImGui::Button("Reset All"))
+        {
+            drum_controller_.resetAllTracks();
+        }
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Volume");
+        ImGui::SameLine();
+
+        if (ImGui::SliderFloat("##Volume", &volume, 0, 5))
+        {
+            drum_controller_.setVolume(volume);
+        }
+        ImGui::EndChild();
+    }
+}
+
 void DrumView::draw()
 {
     // Window
-    const ImVec2 base_resolution = ImVec2(1920.0f, 1080.0f);
     ImVec2 current_size = ImGui::GetIO().DisplaySize;
-
-    // Setup
-    auto sample_wav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
-    int bpm = drum_controller_.getBpm();
-    float volume = drum_controller_.getVolume();
 
     // Styling
     styles_.FrameRounding = 3.0f;
-
     {
         ImGui::Begin("Drum View", NULL, ImGuiWindowFlags_NoResize);
         styles_.WindowPadding = ImVec2(10.0f, 10.0f);
@@ -85,6 +121,8 @@ void DrumView::draw()
 
         // Store the checkbox positions to calculate label position
         std::array<float, MAX_STEPS> checkbox_positions{};
+
+        drawSubMenu();
 
         for (int i = 0; i < num_tracks; ++i)
         {
@@ -112,34 +150,6 @@ void DrumView::draw()
         drawBeatCounterLabels(checkbox_positions);
         ImGui::NewLine();
         ImGui::PushItemWidth(100);
-
-        if (ImGui::InputInt("BPM", &bpm, 1, 10))
-        {
-            drum_controller_.setBpm(bpm);
-        }
-
-        ImGui::NewLine();
-
-        // Buttons
-        std::string buttonDisplayStatus = drum_controller_.getIsPlaying() ? "Pause" : "Play";
-        if (ImGui::Button(buttonDisplayStatus.c_str()))
-        {
-            drum_controller_.toggleSequencer();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Reset All"))
-        {
-            drum_controller_.resetAllTracks();
-        }
-        if (ImGui::Button("Play Sample"))
-        {
-            drum_controller_.playSound(sample_wav);
-        }
-        // Volume
-        if (ImGui::SliderFloat("Volume", &volume, 0, 5))
-        {
-            drum_controller_.setVolume(volume);
-        }
         ImGui::End();
     }
 }
