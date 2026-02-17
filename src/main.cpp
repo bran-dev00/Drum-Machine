@@ -40,7 +40,6 @@ int main(int argc, char const *argv[])
     ImGui_ImplOpenGL2_Init();
 
     // Init Drum Machine
-    // auto sampleWav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
     auto drum_controller = new DrumController();
     auto drum_view = new DrumView(*drum_controller);
 
@@ -55,12 +54,9 @@ int main(int argc, char const *argv[])
         ImGui::NewFrame();
 
         ImGui::ShowDemoWindow();
-
         drum_controller->step();
-        //Draw UI
         drum_view->draw();
 
-        // Rendering
         ImGui::Render();
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
