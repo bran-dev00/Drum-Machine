@@ -9,15 +9,15 @@
 #include "drum_track_model.hpp"
 
 #define MAX_STEPS 16
+#define NUM_TRACKS 8
 
 using namespace std::chrono_literals;
 using Track_t = std::array<bool, MAX_STEPS>;
 
-
 class DrumController
 {
 private:
-    std::array<DrumTrackModel, 4> tracks_;
+    std::array<DrumTrackModel, NUM_TRACKS> tracks_;
 
     bool isPlaying_;
     int bpm_;
@@ -28,7 +28,6 @@ private:
     std::vector<std::string> samples_;
     ma_engine engine_;
     float volume_;
-    
 
 public:
     DrumController();
@@ -45,7 +44,7 @@ public:
 
     std::array<bool, MAX_STEPS> &getSequencerArray();
 
-    std::array<DrumTrackModel, 4> &getTracks();
+    std::array<DrumTrackModel, NUM_TRACKS> &getTracks();
     DrumTrackModel &getTrackByIndex(int index);
 
     int &getBeatCounter();
@@ -54,7 +53,7 @@ public:
     void step();
     void setBpm(int bpm);
     int getBpm();
-    
+
     void setVolume(float value);
     float getVolume();
 
