@@ -19,6 +19,10 @@ class DrumController
 private:
     std::array<DrumTrackModel, NUM_TRACKS> tracks_;
 
+    const int QUARTER_NOTE_MULT_ = 1;
+    const int SIXTEENTH_NOTE_MULT_ = 4;
+    const int EIGHT_NOTE_MULT_ = 2;
+
     bool isPlaying_;
     int bpm_;
     int beatCounter_;
