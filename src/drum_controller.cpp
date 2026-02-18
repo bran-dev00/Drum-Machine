@@ -7,9 +7,10 @@ DrumController::DrumController()
     isPlaying_ = false;
     lastStep_ = std::chrono::steady_clock::now();
     beatCounter_ = 0;
-    bpm_ = 120;
+    bpm_ = 90;
 
     ma_engine_init(NULL, &engine_);
+    ma_engine_set_volume(&engine_, .5f);
     loadInitialSamples();
     initSequencer();
 }
@@ -64,7 +65,7 @@ void DrumController::step()
     auto now = std::chrono::steady_clock::now();
 
     std::chrono::duration<double> secondsPerBeat(60.0 / bpm_);
-    auto bpmToMs = std::chrono::duration_cast<std::chrono::milliseconds>(secondsPerBeat);
+    auto bpmToMs = std::chrono::duration_cast<std::chrono::milliseconds>(secondsPerBeat / SIXTEENTH_NOTE_MULT_);
 
     if (isPlaying_ && std::chrono::duration_cast<std::chrono::milliseconds>(now - lastStep_) > bpmToMs)
     {

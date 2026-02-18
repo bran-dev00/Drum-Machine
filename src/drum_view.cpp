@@ -70,7 +70,18 @@ void DrumView::drawSubMenu()
         ImGui::SameLine();
         if (ImGui::InputInt("##BPM", &bpm, 1, 10))
         {
-            drum_controller_.setBpm(bpm);
+            if (bpm < 20)
+            {
+                drum_controller_.setBpm(20);
+            }
+            else if (bpm > 999)
+            {
+                drum_controller_.setBpm(999);
+            }
+            else
+            {
+                drum_controller_.setBpm(bpm);
+            }
         }
 
         ImGui::NewLine();
