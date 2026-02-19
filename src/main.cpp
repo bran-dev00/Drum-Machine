@@ -19,7 +19,9 @@ int main(int argc, char const *argv[])
         return 1;
 
     // Create window with OpenGL context
-    GLFWwindow *window = glfwCreateWindow(1280, 720, "Drum Machine", NULL, NULL);
+
+    float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
+    GLFWwindow *window = glfwCreateWindow((int)(1920 * main_scale), (int)(1080 * main_scale), "Drum Machine", NULL, NULL);
     if (window == NULL)
     {
         glfwTerminate();

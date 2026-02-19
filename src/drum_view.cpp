@@ -30,7 +30,7 @@ void DrumView::drawTrack(int track_idx, Track_t &track, std::array<float, MAX_ST
         std::string id = std::string("##track_") + std::to_string(track_idx) + "_beat_" + std::to_string(j);
 
         // Checkbox Size
-        styles_.FramePadding = ImVec2(10.0f, 10.0f);
+        styles_.FramePadding = ImVec2(5.0f, 5.0f);
         if (ImGui::Checkbox(id.c_str(), &track[j]))
         {
             if (j < MAX_STEPS)
@@ -101,6 +101,7 @@ void DrumView::drawSubMenu()
         ImGui::Text("Volume");
         ImGui::SameLine();
 
+        ImGui::PushItemWidth(100.0f);
         if (ImGui::SliderFloat("##Volume", &volume, 0, 5))
         {
             drum_controller_.setVolume(volume);
@@ -117,17 +118,16 @@ void DrumView::draw()
     // Styling
     styles_.FrameRounding = 3.0f;
     {
-        ImGui::SetWindowSize(ImVec2(743, 905));
         ImGui::Begin("Drum View", NULL);
-        styles_.WindowPadding = ImVec2(10.0f, 10.0f);
         ImVec2 window_size = ImGui::GetWindowSize();
 
-        // std::cout << window_size.x << "," << window_size.y << "\n";
+        // Center Align
+        styles_.WindowPadding = ImVec2(window_size.x / 5.0f, 10.0f);
+        drawSubMenu();
 
-        // Beat Indicator
-        ImGui::SetCursorPosX(10.0f);
-        float checkbox_width = ImGui::GetFrameHeight() * 2;
-        ImGui::PushItemWidth((checkbox_width * MAX_STEPS) + 40.0f);
+        ImGui::SetCursorPosX(window_size.x / 5.0f);
+        float checkbox_width = ImGui::GetFrameHeightWithSpacing() * 1.5f;
+        ImGui::PushItemWidth((checkbox_width * MAX_STEPS));
         ImGui::SliderInt("##", &drum_controller_.getBeatCounter(), 1, MAX_STEPS);
 
         auto &tracks = drum_controller_.getTracks();
@@ -136,8 +136,6 @@ void DrumView::draw()
         // Store the checkbox positions to calculate label position
         std::array<float, MAX_STEPS> checkbox_positions{};
 
-        drawSubMenu();
-
         for (int i = 0; i < num_tracks; ++i)
         {
             std::string track_name = tracks[i].getName();
@@ -145,18 +143,16 @@ void DrumView::draw()
             Track_t &track = tracks.at(i).getTrackSequencer();
 
             // Change Padding Back
-            // styles_.FramePadding = ImVec2(4.0f, 3.0f);
             ImGui::PushID(i);
-
             drawTrack(i, track, checkbox_positions);
 
             // Restore smaller padding for buttons and other widgets
-            styles_.FramePadding = ImVec2(4.0f, 3.0f);
 
             if (ImGui::Button("Reset"))
             {
                 drum_controller_.resetSequencer(track);
             }
+            styles_.FramePadding = ImVec2(4.0f, 3.0f);
             ImGui::PopID();
             ImGui::NewLine();
         }
