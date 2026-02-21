@@ -142,11 +142,8 @@ void DrumView::draw()
             ImGui::SeparatorText(track_name.c_str());
             Track_t &track = tracks.at(i).getTrackSequencer();
 
-            // Change Padding Back
             ImGui::PushID(i);
             drawTrack(i, track, checkbox_positions);
-
-            // Restore smaller padding for buttons and other widgets
 
             if (ImGui::Button("Reset"))
             {

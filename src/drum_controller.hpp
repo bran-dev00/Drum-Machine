@@ -27,10 +27,13 @@ private:
     int bpm_;
     int beatCounter_;
     std::chrono::time_point<std::chrono::steady_clock> lastStep_;
-    std::string samplePath_;
 
     std::vector<std::string> samples_;
+    std::array<ma_sound *, NUM_TRACKS> sounds_;
+    std::array<bool, NUM_TRACKS> sound_initialized_;
+
     ma_engine engine_;
+
     float volume_;
 
 public:
@@ -38,6 +41,8 @@ public:
     ~DrumController();
 
     void initSequencer();
+    void initSoundArray();
+
     void loadInitialSamples();
 
     void setSequencerNoteTrue(Track_t &track, int index);
@@ -61,7 +66,7 @@ public:
     void setVolume(float value);
     float getVolume();
 
-    void playSound(std::string &samplePath);
+    void playSound(int track_idx);
     void playSequencer();
     void pauseSequencer();
     void toggleSequencer();
