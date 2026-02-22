@@ -58,7 +58,7 @@ void DrumView::drawTrack(int track_idx, Track_t &track, std::array<float, MAX_ST
 void DrumView::drawSubMenu()
 {
     int bpm = drum_controller_.getBpm();
-    float volume = drum_controller_.getVolume();
+    float volume = drum_controller_.getMasterVolume();
     auto sample_wav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
 
     auto window_size = ImGui::GetWindowSize();
@@ -104,7 +104,7 @@ void DrumView::drawSubMenu()
         ImGui::PushItemWidth(100.0f);
         if (ImGui::SliderFloat("##Volume", &volume, 0, 5))
         {
-            drum_controller_.setVolume(volume);
+            drum_controller_.setMasterVolume(volume);
         }
         ImGui::EndChild();
     }
@@ -114,8 +114,6 @@ void DrumView::draw()
 {
     // Window
     ImVec2 current_size = ImGui::GetIO().DisplaySize;
-
-    // Styling
     styles_.FrameRounding = 3.0f;
     {
         ImGui::Begin("Drum View", NULL);
@@ -133,6 +131,8 @@ void DrumView::draw()
         auto &tracks = drum_controller_.getTracks();
         int num_tracks = static_cast<int>(tracks.size());
 
+        std::array<float, NUM_TRACKS> track_volumes = drum_controller_.getTrackVolumes();
+
         // Store the checkbox positions to calculate label position
         std::array<float, MAX_STEPS> checkbox_positions{};
 
@@ -141,6 +141,7 @@ void DrumView::draw()
             std::string track_name = tracks[i].getName();
             ImGui::SeparatorText(track_name.c_str());
             Track_t &track = tracks.at(i).getTrackSequencer();
+            ma_sound *sound = drum_controller_.getSound(i);
 
             ImGui::PushID(i);
             drawTrack(i, track, checkbox_positions);
@@ -149,8 +150,15 @@ void DrumView::draw()
             {
                 drum_controller_.resetSequencer(track);
             }
-            styles_.FramePadding = ImVec2(4.0f, 3.0f);
+
+            float track_volume = track_volumes.at(i);
+            if (ImGui::SliderFloat("##track_vol", &track_volume, 0, 1))
+            {
+                drum_controller_.setSoundVolume(i, track_volume);
+            }
+
             ImGui::PopID();
+            styles_.FramePadding = ImVec2(4.0f, 3.0f);
             ImGui::NewLine();
         }
 

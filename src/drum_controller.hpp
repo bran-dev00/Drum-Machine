@@ -31,6 +31,7 @@ private:
     std::vector<std::string> samples_;
     std::array<ma_sound *, NUM_TRACKS> sounds_;
     std::array<bool, NUM_TRACKS> sound_initialized_;
+    std::array<float, NUM_TRACKS> track_volumes;
 
     ma_engine engine_;
 
@@ -63,8 +64,14 @@ public:
     void setBpm(int bpm);
     int getBpm();
 
-    void setVolume(float value);
-    float getVolume();
+    void setMasterVolume(float value);
+    float getMasterVolume();
+
+    void initTrackVolumesArr();
+    ma_sound *getSound(int index);
+    float getSoundVolume(int track_idx);
+    void setSoundVolume(int track_idx, float value);
+    std::array<float, NUM_TRACKS> getTrackVolumes();
 
     void playSound(int track_idx);
     void playSequencer();

@@ -15,6 +15,7 @@ DrumController::DrumController()
     loadInitialSamples();
     initSoundArray();
     initSequencer();
+    initTrackVolumesArr();
 }
 
 DrumController::~DrumController()
@@ -117,7 +118,20 @@ void DrumController::step()
     }
 }
 
-void DrumController::setVolume(float value = .5f)
+void DrumController::initTrackVolumesArr()
+{
+    if (!sounds_.empty())
+    {
+        for (int i = 0; i < NUM_TRACKS; i++)
+        {
+            ma_sound *pSound = sounds_.at(i);
+            ma_sound_set_volume(pSound, 1);
+            track_volumes.at(i) = ma_sound_get_volume(pSound);
+        }
+    }
+}
+
+void DrumController::setMasterVolume(float value = .5f)
 {
     if (value < 0)
     {
@@ -128,9 +142,35 @@ void DrumController::setVolume(float value = .5f)
     ma_engine_set_volume(&engine_, value);
 }
 
-float DrumController::getVolume()
+float DrumController::getMasterVolume()
 {
     return ma_engine_get_volume(&engine_);
+}
+
+ma_sound *DrumController::getSound(int index)
+{
+    return sounds_.at(index);
+}
+
+void DrumController::setSoundVolume(int track_idx, float value)
+{
+    ma_sound *pSound = sounds_.at(track_idx);
+    ma_sound_set_volume(pSound, value);
+    track_volumes.at(track_idx) = ma_sound_get_volume(pSound);
+}
+
+float DrumController::getSoundVolume(int track_idx)
+{
+    return track_volumes.at(track_idx);
+}
+
+std::array<float, NUM_TRACKS> DrumController::getTrackVolumes()
+{
+    if (sounds_.empty())
+    {
+        initTrackVolumesArr();
+    }
+    return track_volumes;
 }
 
 void DrumController::setBpm(int bpm)
