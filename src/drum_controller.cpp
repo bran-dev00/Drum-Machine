@@ -11,11 +11,22 @@ DrumController::DrumController()
 
     ma_engine_init(NULL, &engine_);
     ma_engine_set_volume(&engine_, .5f);
+
     loadInitialSamples();
+    initSoundArray();
     initSequencer();
+    initTrackVolumesArr();
 }
 
-DrumController::~DrumController() = default;
+DrumController::~DrumController()
+{
+    for (size_t i = 0; i < NUM_TRACKS; i++)
+    {
+        ma_sound_uninit(sounds_[i]);
+        delete sounds_[i];
+    }
+    ma_engine_uninit(&engine_);
+}
 
 void DrumController::loadInitialSamples()
 {
@@ -25,14 +36,13 @@ void DrumController::loadInitialSamples()
 
     for (const auto &entry : std::filesystem::directory_iterator(file_path_base))
     {
-        // std::cout << "file: " << entry.path() << std::endl;
         std::string file_name = entry.path().string();
         samples_.push_back(file_name);
     }
 }
 
 // String Helper Function
-static std::string ExtractSampleName(std::string file_path)
+static std::string extractSampleName(std::string file_path)
 {
 
     std::string output_str;
@@ -42,22 +52,40 @@ static std::string ExtractSampleName(std::string file_path)
     return output_str;
 }
 
+void DrumController::initSoundArray()
+{
+    for (size_t i = 0; i < sounds_.size(); i++)
+    {
+        sounds_[i] = new ma_sound();
+    }
+}
+
 void DrumController::initSequencer()
 {
+    sound_initialized_.fill(false);
 
     for (size_t i = 0; i < tracks_.size(); i++)
     {
         std::string track_name;
-
-        track_name = ExtractSampleName(samples_[i]);
-
+        track_name = extractSampleName(samples_[i]);
         tracks_[i] = DrumTrackModel(track_name, samples_[i]);
+
+        if (ma_sound_init_from_file(&engine_, samples_[i].c_str(), MA_SOUND_FLAG_DECODE, NULL, NULL, sounds_[i]) == MA_SUCCESS)
+        {
+            sound_initialized_[i] = true;
+        }
     }
 }
 
-void DrumController::playSound(std::string &samplePath)
+void DrumController::playSound(int track_idx)
 {
-    ma_engine_play_sound(&engine_, samplePath.c_str(), NULL);
+    if (!sound_initialized_[track_idx])
+        return;
+
+    auto sound = sounds_[track_idx];
+
+    ma_sound_seek_to_pcm_frame(sound, 0);
+    ma_sound_start(sound);
 }
 
 void DrumController::step()
@@ -77,7 +105,7 @@ void DrumController::step()
 
             if (sequencer.at(beatCounter_) == true && !sequencer.empty())
             {
-                playSound(sample);
+                playSound(i);
             }
         }
 
@@ -90,7 +118,20 @@ void DrumController::step()
     }
 }
 
-void DrumController::setVolume(float value = .5f)
+void DrumController::initTrackVolumesArr()
+{
+    if (!sounds_.empty())
+    {
+        for (int i = 0; i < NUM_TRACKS; i++)
+        {
+            ma_sound *pSound = sounds_.at(i);
+            ma_sound_set_volume(pSound, 1);
+            track_volumes.at(i) = ma_sound_get_volume(pSound);
+        }
+    }
+}
+
+void DrumController::setMasterVolume(float value = .5f)
 {
     if (value < 0)
     {
@@ -101,9 +142,35 @@ void DrumController::setVolume(float value = .5f)
     ma_engine_set_volume(&engine_, value);
 }
 
-float DrumController::getVolume()
+float DrumController::getMasterVolume()
 {
-    return volume_;
+    return ma_engine_get_volume(&engine_);
+}
+
+ma_sound *DrumController::getSound(int index)
+{
+    return sounds_.at(index);
+}
+
+void DrumController::setSoundVolume(int track_idx, float value)
+{
+    ma_sound *pSound = sounds_.at(track_idx);
+    ma_sound_set_volume(pSound, value);
+    track_volumes.at(track_idx) = ma_sound_get_volume(pSound);
+}
+
+float DrumController::getSoundVolume(int track_idx)
+{
+    return track_volumes.at(track_idx);
+}
+
+std::array<float, NUM_TRACKS> DrumController::getTrackVolumes()
+{
+    if (sounds_.empty())
+    {
+        initTrackVolumesArr();
+    }
+    return track_volumes;
 }
 
 void DrumController::setBpm(int bpm)
