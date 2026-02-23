@@ -120,7 +120,7 @@ void DrumView::draw()
         ImVec2 window_size = ImGui::GetWindowSize();
 
         // Center Align
-        styles_.WindowPadding = ImVec2(window_size.x / 5.0f, 10.0f);
+        styles_.WindowPadding = ImVec2(window_size.x / 8.0f, 10.0f);
         drawSubMenu();
 
         ImGui::SetCursorPosX(window_size.x / 5.0f);
@@ -151,6 +151,8 @@ void DrumView::draw()
                 drum_controller_.resetSequencer(track);
             }
 
+            ImGui::SameLine();
+            ImGui::PushItemWidth(100.0f);
             float track_volume = track_volumes.at(i);
             if (ImGui::SliderFloat("##track_vol", &track_volume, 0, 1))
             {
