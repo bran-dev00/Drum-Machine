@@ -61,6 +61,16 @@ void DrumView::drawSubMenu()
     float volume = drum_controller_.getMasterVolume();
     auto sample_wav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
 
+    std::string curr_drum_pack = drum_controller_.extractDirName(drum_controller_.getCurrDrumPack());
+    std::vector<std::string> drum_packs = drum_controller_.getDrumPacks();
+
+    // extract drum pack names
+    for (size_t i = 0; i < drum_packs.size(); i++)
+    {
+        std::string d_name = drum_controller_.extractDirName(drum_packs.at(i));
+        drum_packs.at(i) = d_name;
+    }
+
     auto window_size = ImGui::GetWindowSize();
     {
         ImGui::BeginChild("Basic Controls", ImVec2(window_size.x / 4, window_size.y / 5));
@@ -86,7 +96,18 @@ void DrumView::drawSubMenu()
 
         ImGui::NewLine();
 
+        ImGui::Text("Curr Drum Pack:");
+        ImGui::SameLine();
+        ImGui::Text(curr_drum_pack.c_str());
+
         // Buttons
+        ImGui::NewLine();
+        // test
+        if (ImGui::Button("Switch Drum Pack"))
+        {
+            drum_controller_.setDrumPack(1);
+        }
+
         std::string buttonDisplayStatus = drum_controller_.getIsPlaying() ? "Pause" : "Play";
         if (ImGui::Button(buttonDisplayStatus.c_str()))
         {
