@@ -23,15 +23,19 @@ private:
     const int SIXTEENTH_NOTE_MULT_ = 4;
     const int EIGHT_NOTE_MULT_ = 2;
 
-    bool isPlaying_;
+    bool is_playing_;
     int bpm_;
     int beatCounter_;
+    std::string base_assets_dir_;
     std::chrono::time_point<std::chrono::steady_clock> lastStep_;
 
-    std::vector<std::string> samples_;
+    std::vector<std::string> samples_paths_;
     std::array<ma_sound *, NUM_TRACKS> sounds_;
     std::array<bool, NUM_TRACKS> sound_initialized_;
-    std::array<float, NUM_TRACKS> track_volumes;
+    std::array<float, NUM_TRACKS> track_volumes_;
+
+    std::vector<std::string> drum_packs_;
+    std::string curr_drum_pack_;
 
     ma_engine engine_;
 
@@ -45,12 +49,16 @@ public:
     void initSoundArray();
 
     void loadInitialSamples();
+    void loadSamples(const std::string sample_path);
 
     void setSequencerNoteTrue(Track_t &track, int index);
     void setSequencerNoteFalse(Track_t &track, int index);
 
     void resetSequencer(Track_t &track);
     void resetAllTracks();
+
+    std::string extractSampleName(std::string file_path);
+    std::string extractDirName(std::string file_path);
 
     std::array<bool, MAX_STEPS> &getSequencerArray();
 
@@ -63,6 +71,13 @@ public:
     void step();
     void setBpm(int bpm);
     int getBpm();
+
+    void setDrumPack(int index);
+    std::string getCurrDrumPack();
+    std::vector<std::string> getDrumPacks();
+
+    // re-scan assets directory for all the drum packs
+    void scanDrumPacks();
 
     void setMasterVolume(float value);
     float getMasterVolume();

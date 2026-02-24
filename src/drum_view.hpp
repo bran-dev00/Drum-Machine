@@ -21,6 +21,9 @@ public:
     void drawTrack(int id, Track_t &track, std::array<float, MAX_STEPS> &checkbox_positions);
     void drawTracks(int num_tracks);
 
+    void drawDrumPackSelection();
+    void drawMenu();
+
     void drawSubMenu();
 
     void draw();

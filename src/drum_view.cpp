@@ -1,5 +1,6 @@
 #include "drum_view.hpp"
 #include <string>
+#include <iostream>
 
 DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
 {
@@ -87,17 +88,20 @@ void DrumView::drawSubMenu()
         ImGui::NewLine();
 
         // Buttons
+        ImGui::NewLine();
+        // test
         std::string buttonDisplayStatus = drum_controller_.getIsPlaying() ? "Pause" : "Play";
         if (ImGui::Button(buttonDisplayStatus.c_str()))
         {
             drum_controller_.toggleSequencer();
         }
 
+        ImGui::AlignTextToFramePadding();
         if (ImGui::Button("Reset All"))
         {
             drum_controller_.resetAllTracks();
         }
-        ImGui::AlignTextToFramePadding();
+
         ImGui::Text("Volume");
         ImGui::SameLine();
 
@@ -106,7 +110,45 @@ void DrumView::drawSubMenu()
         {
             drum_controller_.setMasterVolume(volume);
         }
+        ImGui::PopItemWidth();
         ImGui::EndChild();
+    }
+}
+
+void DrumView::drawDrumPackSelection()
+{
+    std::string curr_drum_pack = drum_controller_.extractDirName(drum_controller_.getCurrDrumPack());
+    std::vector<std::string> drum_packs = drum_controller_.getDrumPacks();
+
+    // extract drum pack names
+    for (size_t i = 0; i < drum_packs.size(); i++)
+    {
+        std::string d_name = drum_controller_.extractDirName(drum_packs.at(i));
+        drum_packs.at(i) = d_name;
+    }
+
+    static int selected = 0;
+    for (size_t i = 0; i < drum_packs.size(); i++)
+    {
+        std::string name = drum_packs.at(i);
+        if (ImGui::Selectable(name.c_str(), selected == i))
+        {
+            selected = i;
+            drum_controller_.setDrumPack(i);
+        }
+    }
+}
+
+void DrumView::drawMenu()
+{
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("Drum Packs"))
+        {
+            drawDrumPackSelection();
+            ImGui::EndMenu();
+        }
+        ImGui::EndMenuBar();
     }
 }
 
@@ -116,17 +158,19 @@ void DrumView::draw()
     ImVec2 current_size = ImGui::GetIO().DisplaySize;
     styles_.FrameRounding = 3.0f;
     {
-        ImGui::Begin("Drum View", NULL);
+        ImGui::Begin("Drum View", NULL, ImGuiWindowFlags_MenuBar);
         ImVec2 window_size = ImGui::GetWindowSize();
+
+        drawMenu();
+        drawSubMenu();
 
         // Center Align
         styles_.WindowPadding = ImVec2(window_size.x / 8.0f, 10.0f);
-        drawSubMenu();
-
         ImGui::SetCursorPosX(window_size.x / 5.0f);
         float checkbox_width = ImGui::GetFrameHeightWithSpacing() * 1.5f;
         ImGui::PushItemWidth((checkbox_width * MAX_STEPS));
-        ImGui::SliderInt("##", &drum_controller_.getBeatCounter(), 1, MAX_STEPS);
+        ImGui::SliderInt("##Beat", &drum_controller_.getBeatCounter(), 1, MAX_STEPS);
+        ImGui::PopItemWidth();
 
         auto &tracks = drum_controller_.getTracks();
         int num_tracks = static_cast<int>(tracks.size());
@@ -153,20 +197,22 @@ void DrumView::draw()
 
             ImGui::SameLine();
             ImGui::PushItemWidth(100.0f);
-            float track_volume = track_volumes.at(i);
-            if (ImGui::SliderFloat("##track_vol", &track_volume, 0, 1))
             {
-                drum_controller_.setSoundVolume(i, track_volume);
+                float track_volume = track_volumes.at(i);
+                if (ImGui::SliderFloat("##track_vol", &track_volume, 0, 1))
+                {
+                    drum_controller_.setSoundVolume(i, track_volume);
+                }
             }
+            ImGui::PopItemWidth();
 
             ImGui::PopID();
-            styles_.FramePadding = ImVec2(4.0f, 3.0f);
             ImGui::NewLine();
+            styles_.FramePadding = ImVec2(4.0f, 3.0f);
         }
 
         drawBeatCounterLabels(checkbox_positions);
         ImGui::NewLine();
-        ImGui::PushItemWidth(100);
         ImGui::End();
     }
 }
