@@ -20,6 +20,7 @@ public:
     void drawBeatCounterLabels(const std::array<float, MAX_STEPS> &positions);
     void drawTrack(int id, Track_t &track, std::array<float, MAX_STEPS> &checkbox_positions);
     void drawTracks(int num_tracks);
+    void drawMenu();
 
     void drawSubMenu();
 

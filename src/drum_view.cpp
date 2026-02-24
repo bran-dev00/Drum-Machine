@@ -1,5 +1,6 @@
 #include "drum_view.hpp"
 #include <string>
+#include <iostream>
 
 DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
 {
@@ -103,11 +104,6 @@ void DrumView::drawSubMenu()
         // Buttons
         ImGui::NewLine();
         // test
-        if (ImGui::Button("Switch Drum Pack"))
-        {
-            drum_controller_.setDrumPack(1);
-        }
-
         std::string buttonDisplayStatus = drum_controller_.getIsPlaying() ? "Pause" : "Play";
         if (ImGui::Button(buttonDisplayStatus.c_str()))
         {
@@ -131,17 +127,34 @@ void DrumView::drawSubMenu()
     }
 }
 
+void DrumView::drawMenu()
+{
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("Drum Packs"))
+        {
+            if (ImGui::MenuItem("Switch to Drum Pack 2"))
+            {
+                drum_controller_.setDrumPack(1);
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMenuBar();
+    }
+}
+
 void DrumView::draw()
 {
     // Window
     ImVec2 current_size = ImGui::GetIO().DisplaySize;
     styles_.FrameRounding = 3.0f;
     {
-        ImGui::Begin("Drum View", NULL);
+        ImGui::Begin("Drum View", NULL, ImGuiWindowFlags_MenuBar);
         ImVec2 window_size = ImGui::GetWindowSize();
 
         // Center Align
         styles_.WindowPadding = ImVec2(window_size.x / 8.0f, 10.0f);
+        drawMenu();
         drawSubMenu();
 
         ImGui::SetCursorPosX(window_size.x / 5.0f);
