@@ -1,6 +1,7 @@
 #include "drum_view.hpp"
 #include <string>
 #include <iostream>
+#include <algorithm>
 
 DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
 {
@@ -27,7 +28,6 @@ void DrumView::drawBeatCounterLabels(const std::array<float, MAX_STEPS> &positio
 
 void DrumView::drawTrack(int track_idx, Track_t &track, std::array<float, MAX_STEPS> &checkbox_positions)
 {
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 5.0f));
     for (int j = 0; j < MAX_STEPS; ++j)
     {
 
@@ -57,7 +57,6 @@ void DrumView::drawTrack(int track_idx, Track_t &track, std::array<float, MAX_ST
 
         ImGui::SameLine();
     }
-    ImGui::PopStyleVar();
 }
 
 void DrumView::drawTracks()
@@ -69,12 +68,27 @@ void DrumView::drawTracks()
     // Store the checkbox positions to calculate label position
     std::array<float, MAX_STEPS> checkbox_positions{};
 
+    auto content_avail = ImGui::GetContentRegionAvail();
+
+    drawBeatIndicator();
+    float checkbox_width = ImGui::GetFrameHeightWithSpacing() * 1.5f;
+    float total_width = (checkbox_width * MAX_STEPS) + 50.0f;
+
+    float avail = ImGui::GetContentRegionAvail().x;
+    float offset = (avail - total_width) * 0.5f;
+    float start_x = ImGui::GetCursorPosX() + (std::max)(0.0f, (avail - total_width) * 0.5f);
+
+    float child_height = ImGui::GetFrameHeightWithSpacing() * 2.0f;
+    ImGui::BeginChild("Tracks", ImVec2(total_width, 0), false, ImGuiWindowFlags_NoScrollbar);
     for (int i = 0; i < NUM_TRACKS; ++i)
     {
+
+        ma_sound *sound = drum_controller_.getSound(i);
+
         std::string track_name = tracks[i].getName();
         ImGui::SeparatorText(track_name.c_str());
+
         Track_t &track = tracks.at(i).getTrackSequencer();
-        ma_sound *sound = drum_controller_.getSound(i);
 
         ImGui::PushID(i);
         drawTrack(i, track, checkbox_positions);
@@ -96,29 +110,41 @@ void DrumView::drawTracks()
         ImGui::PopItemWidth();
 
         ImGui::PopID();
+
         ImGui::NewLine();
     }
     drawBeatCounterLabels(checkbox_positions);
+    ImGui::SameLine(0.0f, 10.0f);
+    drawResetAllButton();
+    ImGui::EndChild();
 }
 
-void DrumView::drawBeatIndicator(ImVec2 window_size)
+void DrumView::drawBeatIndicator()
 {
-    ImGui::SetCursorPosX(window_size.x / 5.0f);
     float checkbox_width = ImGui::GetFrameHeightWithSpacing() * 1.5f;
     ImGui::PushItemWidth((checkbox_width * MAX_STEPS));
     ImGui::SliderInt("##Beat", &drum_controller_.getBeatCounter(), 1, MAX_STEPS);
     ImGui::PopItemWidth();
 }
 
+void DrumView::drawResetAllButton()
+{
+    ImGui::AlignTextToFramePadding();
+    if (ImGui::Button("Reset All"))
+    {
+        drum_controller_.resetAllTracks();
+    }
+}
+
 void DrumView::drawControls()
 {
     int bpm = drum_controller_.getBpm();
     float volume = drum_controller_.getMasterVolume();
-    auto sample_wav = (std::filesystem::current_path() / L"assets" / L"Rimshot.wav").string();
-
-    auto window_size = ImGui::GetWindowSize();
+    auto window_size = ImGui::GetContentRegionAvail();
     {
         ImGui::BeginChild("Basic Controls", ImVec2(window_size.x / 4, window_size.y / 5));
+
+        // std::cout << window_size.x << "\n";
 
         ImGui::AlignTextToFramePadding();
         ImGui::Text("BPM");
@@ -140,31 +166,23 @@ void DrumView::drawControls()
         }
 
         ImGui::NewLine();
-
-        // Buttons
         ImGui::NewLine();
-        // test
-        std::string buttonDisplayStatus = drum_controller_.getIsPlaying() ? "Pause" : "Play";
-        if (ImGui::Button(buttonDisplayStatus.c_str()))
+
+        std::string playing_status = drum_controller_.getIsPlaying() ? "Pause" : "Play";
+        if (ImGui::Button(playing_status.c_str()))
         {
             drum_controller_.toggleSequencer();
         }
 
-        ImGui::AlignTextToFramePadding();
-        if (ImGui::Button("Reset All"))
-        {
-            drum_controller_.resetAllTracks();
-        }
-
         ImGui::Text("Volume");
         ImGui::SameLine();
-
         ImGui::PushItemWidth(100.0f);
         if (ImGui::SliderFloat("##Volume", &volume, 0, 5))
         {
             drum_controller_.setMasterVolume(volume);
         }
         ImGui::PopItemWidth();
+
         ImGui::EndChild();
     }
 }
@@ -206,12 +224,17 @@ void DrumView::drawMenu()
     }
 }
 
-static void drawMainContainer()
+void DrumView::drawMainContainer()
 {
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(ImGui::GetWindowSize().x * 0.5f, 5.0f));
+
+    auto avail = ImGui::GetContentRegionAvail();
+    float width = avail.x * 0.5f;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(avail.x * 0.5f, 5.0f));
     ImGui::BeginChild("##MainContainer");
 
-    ImGui::Text("CONTENT GOES HERE");
+    drawControls();
+    drawTracks();
 
     ImGui::EndChild();
     ImGui::PopStyleVar();
@@ -226,14 +249,8 @@ void DrumView::draw()
         ImVec2 window_size = ImGui::GetWindowSize();
 
         drawMenu();
-        drawControls();
-        // drawMainContainer();
-        drawBeatIndicator(window_size);
-
-        // Center Align
-        // styles_.WindowPadding = ImVec2(window_size.x / 8.0f, 10.0f);
-
-        drawTracks();
+        ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x / 16.0f);
+        drawMainContainer();
 
         ImGui::NewLine();
         ImGui::End();

@@ -21,12 +21,13 @@ public:
     void drawTrack(int id, Track_t &track, std::array<float, MAX_STEPS> &checkbox_positions);
     void drawTracks();
 
-    void drawBeatIndicator(ImVec2 window_size);
+    void drawBeatIndicator();
 
     void drawDrumPackSelection();
     void drawMenu();
 
     void drawControls();
+    void drawResetAllButton();
     void drawMainContainer();
 
     void draw();
