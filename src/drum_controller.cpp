@@ -21,6 +21,9 @@ DrumController::DrumController()
     initSoundArray();
     initSequencer();
     initTrackVolumesArr();
+
+    // Default Starting Pattern
+    loadInitialPreset();
 }
 
 DrumController::~DrumController()
@@ -51,7 +54,27 @@ void DrumController::loadInitialSamples()
     loadSamples(sample_path);
 }
 
-// String Helper Function
+void DrumController::loadInitialPreset()
+{
+
+    std::array<Track_t, NUM_TRACKS> preset_tracks;
+    for (size_t i = 0; i < NUM_TRACKS; i++)
+    {
+        Track_t track;
+        track.fill(false);
+
+        track[0] = true;
+        track[3] = true;
+        track[6] = true;
+
+        preset_tracks.at(i) = track;
+    }
+
+    Preset_t preset = {"default", 0, preset_tracks};
+
+    presets_list_.push_back(preset);
+}
+
 std::string DrumController::extractSampleName(std::string file_path)
 {
     std::string output_str;
@@ -112,6 +135,22 @@ void DrumController::initSequencer()
             tracks_[i] = DrumTrackModel("", "");
             sound_initialized_[i] = false;
         }
+    }
+}
+
+void DrumController::updateTracks(std::array<Track_t, NUM_TRACKS> tracks)
+{
+    if (tracks.empty())
+    {
+        std::cout << "tracks is empty\n";
+        return;
+    }
+
+    for (size_t i = 0; i < NUM_TRACKS; i++)
+    {
+        Track_t track = tracks.at(i);
+
+        tracks_.at(i).getTrackSequencer() = track;
     }
 }
 
@@ -224,6 +263,12 @@ void DrumController::scanDrumPacks()
 
 void DrumController::setDrumPack(int index)
 {
+    if (index < 0 || index > drum_packs_.size())
+    {
+        std::cout << "drum_packs_ index out of bounds!\n";
+        return;
+    }
+
     if (curr_drum_pack_ != drum_packs_.at(index))
     {
         is_playing_ = false;
@@ -244,6 +289,23 @@ std::string DrumController::getCurrDrumPack()
 std::vector<std::string> DrumController::getDrumPacks()
 {
     return drum_packs_;
+}
+
+void DrumController::loadPreset(int index)
+{
+    if (presets_list_.empty())
+    {
+        return;
+    }
+
+    Preset_t preset = presets_list_.at(index);
+    setDrumPack(preset.drum_pack_idx);
+    updateTracks(preset.tracks);
+}
+
+std::vector<Preset_t> DrumController::getPresetsList()
+{
+    return presets_list_;
 }
 
 void DrumController::setBpm(int bpm)

@@ -194,7 +194,7 @@ void DrumView::drawControls()
     ImGui::NewLine();
 }
 
-void DrumView::drawDrumPackSelection()
+void DrumView::drawDrumPackSelectionMenu()
 {
     std::string curr_drum_pack = drum_controller_.extractDirName(drum_controller_.getCurrDrumPack());
     std::vector<std::string> drum_packs = drum_controller_.getDrumPacks();
@@ -218,13 +218,36 @@ void DrumView::drawDrumPackSelection()
     }
 }
 
-void DrumView::drawMenu()
+void DrumView::drawPresetsMenu()
+{
+
+    auto presets_list = drum_controller_.getPresetsList();
+    std::cout << presets_list.at(0).drum_pack_idx << "\n";
+
+    static int selected = 0;
+    for (size_t i = 0; i < presets_list.size(); i++)
+    {
+        std::string preset_name = presets_list.at(i).preset_name;
+        if (ImGui::Selectable(preset_name.c_str(), selected == i))
+        {
+            selected = i;
+            drum_controller_.loadPreset(i);
+        }
+    }
+}
+
+void DrumView::drawMenuBar()
 {
     if (ImGui::BeginMenuBar())
     {
         if (ImGui::BeginMenu("Drum Packs"))
         {
-            drawDrumPackSelection();
+            drawDrumPackSelectionMenu();
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Presets"))
+        {
+            drawPresetsMenu();
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
@@ -257,7 +280,7 @@ void DrumView::draw()
         ImGui::Begin("Drum View", NULL, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
         ImVec2 window_size = ImGui::GetContentRegionAvail();
 
-        drawMenu();
+        drawMenuBar();
         ImGui::SetCursorPosX(window_size.x / 8);
         drawMainContainer();
 

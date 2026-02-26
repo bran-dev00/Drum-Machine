@@ -5,6 +5,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <utility>
 #include "../external/miniaudio/miniaudio.h"
 #include "drum_track_model.hpp"
 
@@ -13,6 +14,13 @@
 
 using namespace std::chrono_literals;
 using Track_t = std::array<bool, MAX_STEPS>;
+
+struct Preset_t
+{
+    std::string preset_name;
+    int drum_pack_idx;
+    std::array<Track_t, NUM_TRACKS> tracks;
+};
 
 class DrumController
 {
@@ -37,6 +45,8 @@ private:
     std::vector<std::string> drum_packs_;
     std::string curr_drum_pack_;
 
+    std::vector<Preset_t> presets_list_;
+
     ma_engine engine_;
 
     float volume_;
@@ -50,10 +60,12 @@ public:
 
     void loadInitialSamples();
     void loadSamples(const std::string sample_path);
+    void loadInitialPreset();
 
     void setSequencerNoteTrue(Track_t &track, int index);
     void setSequencerNoteFalse(Track_t &track, int index);
 
+    void updateTracks(std::array<Track_t, NUM_TRACKS> tracks);
     void resetSequencer(Track_t &track);
     void resetAllTracks();
 
@@ -75,6 +87,10 @@ public:
     void setDrumPack(int index);
     std::string getCurrDrumPack();
     std::vector<std::string> getDrumPacks();
+
+    void addPreset(Preset_t preset);
+    std::vector<Preset_t> getPresetsList();
+    void loadPreset(int index);
 
     // re-scan assets directory for all the drum packs
     void scanDrumPacks();

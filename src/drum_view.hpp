@@ -23,8 +23,10 @@ public:
 
     void drawBeatIndicator();
 
-    void drawDrumPackSelection();
-    void drawMenu();
+    void drawDrumPackSelectionMenu();
+    void drawPresetsMenu();
+
+    void drawMenuBar();
 
     void drawBpmControls(int &bpm);
     void drawMasterVolume(float &volume);
