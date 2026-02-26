@@ -26,6 +26,8 @@ public:
     void drawDrumPackSelection();
     void drawMenu();
 
+    void drawBpmControls(int &bpm);
+
     void drawControls();
     void drawResetAllButton();
     void drawMainContainer();

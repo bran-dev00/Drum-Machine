@@ -136,37 +136,37 @@ void DrumView::drawResetAllButton()
     }
 }
 
+void DrumView::drawBpmControls(int &bpm)
+{
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("BPM");
+    ImGui::SameLine();
+    ImGui::PushItemWidth(100.0f);
+    if (ImGui::InputInt("##BPM", &bpm, 1, 10))
+    {
+        if (bpm < 20)
+        {
+            drum_controller_.setBpm(20);
+        }
+        else if (bpm > 999)
+        {
+            drum_controller_.setBpm(999);
+        }
+        else
+        {
+            drum_controller_.setBpm(bpm);
+        }
+    }
+    ImGui::PopItemWidth();
+}
+
 void DrumView::drawControls()
 {
     int bpm = drum_controller_.getBpm();
     float volume = drum_controller_.getMasterVolume();
     auto window_size = ImGui::GetContentRegionAvail();
     {
-        ImGui::BeginChild("Basic Controls", ImVec2(window_size.x / 4, window_size.y / 5));
-
-        // std::cout << window_size.x << "\n";
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("BPM");
-        ImGui::SameLine();
-        if (ImGui::InputInt("##BPM", &bpm, 1, 10))
-        {
-            if (bpm < 20)
-            {
-                drum_controller_.setBpm(20);
-            }
-            else if (bpm > 999)
-            {
-                drum_controller_.setBpm(999);
-            }
-            else
-            {
-                drum_controller_.setBpm(bpm);
-            }
-        }
-
-        ImGui::NewLine();
-        ImGui::NewLine();
+        ImGui::BeginChild("Basic Controls", ImVec2(window_size.x, 50.0f));
 
         std::string playing_status = drum_controller_.getIsPlaying() ? "Pause" : "Play";
         if (ImGui::Button(playing_status.c_str()))
@@ -174,16 +174,19 @@ void DrumView::drawControls()
             drum_controller_.toggleSequencer();
         }
 
-        ImGui::Text("Volume");
+        // ImGui::Text("Master Volume");
         ImGui::SameLine();
         ImGui::PushItemWidth(100.0f);
-        if (ImGui::SliderFloat("##Volume", &volume, 0, 5))
+        if (ImGui::SliderFloat("Master Volume", &volume, 0, 5))
         {
             drum_controller_.setMasterVolume(volume);
         }
         ImGui::PopItemWidth();
 
+        drawBpmControls(bpm);
+
         ImGui::EndChild();
+        ImGui::NewLine();
     }
 }
 
@@ -245,11 +248,14 @@ void DrumView::draw()
     // Window
     ImVec2 current_size = ImGui::GetIO().DisplaySize;
     {
-        ImGui::Begin("Drum View", NULL, ImGuiWindowFlags_MenuBar);
-        ImVec2 window_size = ImGui::GetWindowSize();
+
+        // ImGui::SetNextWindowSize(ImVec2(base_resolution_.x / 2, base_resolution_.y / 1.5));
+
+        ImGui::Begin("Drum View", NULL, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
+        ImVec2 window_size = ImGui::GetContentRegionAvail();
 
         drawMenu();
-        ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x / 16.0f);
+        ImGui::SetCursorPosX(window_size.x / 8);
         drawMainContainer();
 
         ImGui::NewLine();
