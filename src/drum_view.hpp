@@ -27,8 +27,10 @@ public:
     void drawMenu();
 
     void drawBpmControls(int &bpm);
+    void drawMasterVolume(float &volume);
+    void drawTogglePlayButton();
 
-    void drawControls();
+    void drawControls(float window_width);
     void drawResetAllButton();
     void drawMainContainer();
 

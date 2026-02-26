@@ -160,34 +160,40 @@ void DrumView::drawBpmControls(int &bpm)
     ImGui::PopItemWidth();
 }
 
-void DrumView::drawControls()
+void DrumView::drawMasterVolume(float &volume)
+{
+    ImGui::Text("Master Volume");
+    // ImGui::SameLine();
+    ImGui::PushItemWidth(100.0f);
+    if (ImGui::SliderFloat("##Master_Volume", &volume, 0, 5))
+    {
+        drum_controller_.setMasterVolume(volume);
+    }
+    ImGui::PopItemWidth();
+}
+
+void DrumView::drawTogglePlayButton()
+{
+    std::string playing_status = drum_controller_.getIsPlaying() ? "Pause" : "Play";
+    if (ImGui::Button(playing_status.c_str()))
+    {
+        drum_controller_.toggleSequencer();
+    }
+}
+
+void DrumView::drawControls(float window_width)
 {
     int bpm = drum_controller_.getBpm();
     float volume = drum_controller_.getMasterVolume();
-    auto window_size = ImGui::GetContentRegionAvail();
-    {
-        ImGui::BeginChild("Basic Controls", ImVec2(window_size.x, 50.0f));
 
-        std::string playing_status = drum_controller_.getIsPlaying() ? "Pause" : "Play";
-        if (ImGui::Button(playing_status.c_str()))
-        {
-            drum_controller_.toggleSequencer();
-        }
+    static float width = window_width + 100.0f;
 
-        // ImGui::Text("Master Volume");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(100.0f);
-        if (ImGui::SliderFloat("Master Volume", &volume, 0, 5))
-        {
-            drum_controller_.setMasterVolume(volume);
-        }
-        ImGui::PopItemWidth();
-
-        drawBpmControls(bpm);
-
-        ImGui::EndChild();
-        ImGui::NewLine();
-    }
+    drawTogglePlayButton();
+    ImGui::SameLine(0, width);
+    drawBpmControls(bpm);
+    ImGui::NewLine();
+    drawMasterVolume(volume);
+    ImGui::NewLine();
 }
 
 void DrumView::drawDrumPackSelection()
@@ -236,7 +242,7 @@ void DrumView::drawMainContainer()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(avail.x * 0.5f, 5.0f));
     ImGui::BeginChild("##MainContainer");
 
-    drawControls();
+    drawControls(width);
     drawTracks();
 
     ImGui::EndChild();
