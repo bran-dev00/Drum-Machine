@@ -19,12 +19,20 @@ public:
 
     void drawBeatCounterLabels(const std::array<float, MAX_STEPS> &positions);
     void drawTrack(int id, Track_t &track, std::array<float, MAX_STEPS> &checkbox_positions);
-    void drawTracks(int num_tracks);
+    void drawTracks();
+
+    void drawBeatIndicator();
 
     void drawDrumPackSelection();
     void drawMenu();
 
-    void drawSubMenu();
+    void drawBpmControls(int &bpm);
+    void drawMasterVolume(float &volume);
+    void drawTogglePlayButton();
+
+    void drawControls();
+    void drawResetAllButton();
+    void drawMainContainer();
 
     void draw();
 };
