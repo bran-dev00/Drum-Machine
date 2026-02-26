@@ -181,15 +181,13 @@ void DrumView::drawTogglePlayButton()
     }
 }
 
-void DrumView::drawControls(float window_width)
+void DrumView::drawControls()
 {
     int bpm = drum_controller_.getBpm();
     float volume = drum_controller_.getMasterVolume();
 
-    static float width = window_width + 100.0f;
-
     drawTogglePlayButton();
-    ImGui::SameLine(0, width);
+    ImGui::SameLine(0, (base_resolution_.x / 4 - 50.0f));
     drawBpmControls(bpm);
     ImGui::NewLine();
     drawMasterVolume(volume);
@@ -242,7 +240,7 @@ void DrumView::drawMainContainer()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(avail.x * 0.5f, 5.0f));
     ImGui::BeginChild("##MainContainer");
 
-    drawControls(width);
+    drawControls();
     drawTracks();
 
     ImGui::EndChild();
@@ -254,8 +252,7 @@ void DrumView::draw()
     // Window
     ImVec2 current_size = ImGui::GetIO().DisplaySize;
     {
-
-        // ImGui::SetNextWindowSize(ImVec2(base_resolution_.x / 2, base_resolution_.y / 1.5));
+        ImGui::SetNextWindowSize(ImVec2(current_size.x / 2.5f, current_size.y * 0.8f), ImGuiCond_FirstUseEver);
 
         ImGui::Begin("Drum View", NULL, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
         ImVec2 window_size = ImGui::GetContentRegionAvail();

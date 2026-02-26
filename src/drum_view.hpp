@@ -30,7 +30,7 @@ public:
     void drawMasterVolume(float &volume);
     void drawTogglePlayButton();
 
-    void drawControls(float window_width);
+    void drawControls();
     void drawResetAllButton();
     void drawMainContainer();
 
