@@ -8,19 +8,11 @@
 #include <utility>
 #include "../external/miniaudio/miniaudio.h"
 #include "drum_track_model.hpp"
+#include "drum_types.hpp"
 
-#define MAX_STEPS 16
-#define NUM_TRACKS 8
+#include "presets.hpp"
 
 using namespace std::chrono_literals;
-using Track_t = std::array<bool, MAX_STEPS>;
-
-struct Preset_t
-{
-    std::string preset_name;
-    int drum_pack_idx;
-    std::array<Track_t, NUM_TRACKS> tracks;
-};
 
 class DrumController
 {
@@ -40,12 +32,13 @@ private:
     std::vector<std::string> samples_paths_;
     std::array<ma_sound *, NUM_TRACKS> sounds_;
     std::array<bool, NUM_TRACKS> sound_initialized_;
+
     std::array<float, NUM_TRACKS> track_volumes_;
 
     std::vector<std::string> drum_packs_;
     std::string curr_drum_pack_;
 
-    std::vector<Preset_t> presets_list_;
+    std::vector<Preset> presets_list_;
 
     ma_engine engine_;
 
@@ -57,10 +50,10 @@ public:
 
     void initSequencer();
     void initSoundArray();
+    void initDemoPreset();
 
     void loadInitialSamples();
     void loadSamples(const std::string sample_path);
-    void loadInitialPreset();
 
     void setSequencerNoteTrue(Track_t &track, int index);
     void setSequencerNoteFalse(Track_t &track, int index);
@@ -88,9 +81,10 @@ public:
     std::string getCurrDrumPack();
     std::vector<std::string> getDrumPacks();
 
-    void addPreset(Preset_t preset);
-    std::vector<Preset_t> getPresetsList();
+    void addPreset(Preset preset);
+    std::vector<Preset> getPresetsList();
     void loadPreset(int index);
+    void deletePreset(int index);
 
     // re-scan assets directory for all the drum packs
     void scanDrumPacks();

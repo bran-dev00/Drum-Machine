@@ -222,12 +222,11 @@ void DrumView::drawPresetsMenu()
 {
 
     auto presets_list = drum_controller_.getPresetsList();
-    std::cout << presets_list.at(0).drum_pack_idx << "\n";
 
     static int selected = 0;
     for (size_t i = 0; i < presets_list.size(); i++)
     {
-        std::string preset_name = presets_list.at(i).preset_name;
+        std::string preset_name = presets_list.at(i).getPresetName();
         if (ImGui::Selectable(preset_name.c_str(), selected == i))
         {
             selected = i;
