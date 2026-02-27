@@ -12,19 +12,6 @@ DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
 
 DrumView::~DrumView() = default;
 
-static void drawTestPopup()
-{
-    if (ImGui::BeginPopup("TestPopup"))
-    {
-        ImGui::Text("This is a test popup!");
-        if (ImGui::Button("Close"))
-        {
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-    }
-}
-
 void DrumView::drawBeatCounterLabels(const std::array<float, MAX_STEPS> &positions)
 {
     float y = ImGui::GetCursorScreenPos().y;
@@ -206,22 +193,6 @@ void DrumView::drawControls()
     ImGui::NewLine();
     drawMasterVolume(volume);
     ImGui::NewLine();
-
-    // TEMP
-    if (ImGui::Button("Test Popup"))
-    {
-        ImGui::OpenPopup("TestModal");
-        std::cout << "Opening Test Popup in controls\n";
-        if (ImGui::BeginPopupModal("TestModal", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGui::Text("This is a test popup!");
-            if (ImGui::Button("Close"))
-            {
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-        }
-    }
 }
 
 void DrumView::drawDrumPackSelectionMenu()
