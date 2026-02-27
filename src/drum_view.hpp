@@ -1,6 +1,7 @@
 #pragma once
 
 #include "drum_controller.hpp"
+#include "presets.hpp"
 #include <filesystem>
 #include "imgui.h"
 #include <iostream>

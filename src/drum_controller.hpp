@@ -51,7 +51,6 @@ public:
     void initSequencer();
     void initSoundArray();
     void initDemoPreset();
-
     void loadInitialSamples();
     void loadSamples(const std::string sample_path);
 
@@ -77,27 +76,31 @@ public:
     void setBpm(int bpm);
     int getBpm();
 
+    // Drum Packs
+    // re-scan assets directory for all the drum packs
+    void scanDrumPacks();
     void setDrumPack(int index);
     std::string getCurrDrumPack();
     std::vector<std::string> getDrumPacks();
+    int getDrumPackIdx(std::string drum_pack_path);
 
+    // Presets
     void addPreset(Preset preset);
     std::vector<Preset> getPresetsList();
     void loadPreset(int index);
     void deletePreset(int index);
 
-    // re-scan assets directory for all the drum packs
-    void scanDrumPacks();
-
+    // Volume & Sounds
     void setMasterVolume(float value);
     float getMasterVolume();
-
     void initTrackVolumesArr();
+
     ma_sound *getSound(int index);
     float getSoundVolume(int track_idx);
     void setSoundVolume(int track_idx, float value);
     std::array<float, NUM_TRACKS> getTrackVolumes();
 
+    // Playback Controls
     void playSound(int track_idx);
     void playSequencer();
     void pauseSequencer();

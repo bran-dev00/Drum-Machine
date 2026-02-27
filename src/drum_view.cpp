@@ -1,5 +1,6 @@
 #include "drum_view.hpp"
 #include <string>
+#include <vector>
 #include <iostream>
 #include <algorithm>
 
@@ -10,6 +11,19 @@ DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
 }
 
 DrumView::~DrumView() = default;
+
+static void drawTestPopup()
+{
+    if (ImGui::BeginPopup("TestPopup"))
+    {
+        ImGui::Text("This is a test popup!");
+        if (ImGui::Button("Close"))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+}
 
 void DrumView::drawBeatCounterLabels(const std::array<float, MAX_STEPS> &positions)
 {
@@ -192,6 +206,22 @@ void DrumView::drawControls()
     ImGui::NewLine();
     drawMasterVolume(volume);
     ImGui::NewLine();
+
+    // TEMP
+    if (ImGui::Button("Test Popup"))
+    {
+        ImGui::OpenPopup("TestModal");
+        std::cout << "Opening Test Popup in controls\n";
+        if (ImGui::BeginPopupModal("TestModal", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("This is a test popup!");
+            if (ImGui::Button("Close"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+    }
 }
 
 void DrumView::drawDrumPackSelectionMenu()
@@ -237,6 +267,7 @@ void DrumView::drawPresetsMenu()
 
 void DrumView::drawMenuBar()
 {
+    bool open_save_popup = false;
     if (ImGui::BeginMenuBar())
     {
         if (ImGui::BeginMenu("Drum Packs"))
@@ -244,12 +275,56 @@ void DrumView::drawMenuBar()
             drawDrumPackSelectionMenu();
             ImGui::EndMenu();
         }
+
         if (ImGui::BeginMenu("Presets"))
         {
+            ImGui::MenuItem("Presets", NULL, false, false); // Non-interactive header
             drawPresetsMenu();
+            ImGui::NewLine();
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Save Current as Preset", NULL, false, true))
+            {
+                open_save_popup = true;
+            }
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
+    }
+
+    if (open_save_popup)
+    {
+        ImGui::OpenPopup("SavePresetPopup");
+    }
+
+    if (ImGui::BeginPopup("SavePresetPopup"))
+    {
+        static char preset_name[64] = "New Preset";
+
+        ImGui::InputText("Preset Name", preset_name, sizeof(preset_name));
+
+        int bpm = drum_controller_.getBpm();
+        int drum_pack_idx = drum_controller_.getDrumPackIdx(drum_controller_.getCurrDrumPack());
+        std::array<float, NUM_TRACKS> track_volumes = drum_controller_.getTrackVolumes();
+
+        auto tracks = drum_controller_.getTracks();
+        std::array<Track_t, NUM_TRACKS> track_patterns;
+        for (int i = 0; i < NUM_TRACKS; i++)
+        {
+            track_patterns.at(i) = tracks.at(i).getTrackSequencer();
+        }
+
+        std::cout << "Saving Preset with name: " << preset_name << ", drum pack idx: " << drum_pack_idx << ", bpm: " << bpm << "\n";
+
+        Preset new_preset(preset_name, drum_pack_idx, track_patterns, bpm, track_volumes);
+
+        if (ImGui::Button("Save Preset"))
+        {
+            drum_controller_.addPreset(new_preset);
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
     }
 }
 

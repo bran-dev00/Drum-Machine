@@ -11,7 +11,7 @@ DrumController::DrumController()
     beatCounter_ = 0;
     bpm_ = 90;
     base_assets_dir_ = (std::filesystem::current_path() / L"assets").string();
-    curr_drum_pack_ = "Kit-1";
+    curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"Kit-1").string();
 
     ma_engine_init(NULL, &engine_);
     ma_engine_set_volume(&engine_, .5f);
@@ -55,7 +55,7 @@ void DrumController::initDemoPreset()
         preset_tracks.at(i) = Preset::parseStringPattern(demo_preset_tracks.at(i));
     }
 
-    Preset demo_preset = {"demo", 0, preset_tracks, 90, track_volumes_};
+    Preset demo_preset = {"Demo Preset", 0, preset_tracks, 90, track_volumes_};
     presets_list_.push_back(demo_preset);
 }
 
@@ -263,6 +263,19 @@ void DrumController::scanDrumPacks()
     }
 }
 
+int DrumController::getDrumPackIdx(std::string drum_pack_path)
+{
+    for (size_t i = 0; i < drum_packs_.size(); i++)
+    {
+        if (drum_packs_.at(i) == drum_pack_path)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 void DrumController::setDrumPack(int index)
 {
     if (index < 0 || index > drum_packs_.size())
@@ -301,13 +314,31 @@ void DrumController::loadPreset(int index)
     }
 
     Preset preset = presets_list_.at(index);
+    setBpm(preset.getPresetBpm());
     setDrumPack(preset.getPresetDrumPack());
     updateTracks(preset.getPresetTracks());
+    beatCounter_ = 0;
 }
 
 std::vector<Preset> DrumController::getPresetsList()
 {
     return presets_list_;
+}
+
+void DrumController::addPreset(Preset preset)
+{
+    presets_list_.push_back(preset);
+}
+
+void DrumController::deletePreset(int index)
+{
+    if (index < 0 || index >= presets_list_.size())
+    {
+        std::cout << "presets_list_ index out of bounds!\n";
+        return;
+    }
+
+    presets_list_.erase(presets_list_.begin() + index);
 }
 
 void DrumController::setBpm(int bpm)
