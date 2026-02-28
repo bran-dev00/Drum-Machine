@@ -236,6 +236,39 @@ void DrumView::drawPresetsMenu()
     }
 }
 
+void DrumView::drawSavePresetPopup()
+{
+    if (ImGui::BeginPopup("SavePresetPopup"))
+    {
+        static char preset_name[64] = "New Preset";
+
+        ImGui::InputText("Preset Name", preset_name, sizeof(preset_name));
+
+        int bpm = drum_controller_.getBpm();
+        int drum_pack_idx = drum_controller_.getDrumPackIdx(drum_controller_.getCurrDrumPack());
+        std::array<float, NUM_TRACKS> track_volumes = drum_controller_.getTrackVolumes();
+
+        auto tracks = drum_controller_.getTracks();
+        std::array<Track_t, NUM_TRACKS> track_patterns;
+        for (int i = 0; i < NUM_TRACKS; i++)
+        {
+            track_patterns.at(i) = tracks.at(i).getTrackSequencer();
+        }
+
+        // std::cout << "Saving Preset with name: " << preset_name << ", drum pack idx: " << drum_pack_idx << ", bpm: " << bpm << "\n";
+
+        Preset new_preset(preset_name, drum_pack_idx, track_patterns, bpm, track_volumes);
+
+        if (ImGui::Button("Save Preset"))
+        {
+            drum_controller_.addPreset(new_preset);
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
 void DrumView::drawMenuBar()
 {
     bool open_save_popup = false;
@@ -243,6 +276,7 @@ void DrumView::drawMenuBar()
     {
         if (ImGui::BeginMenu("Drum Packs"))
         {
+            ImGui::MenuItem("Drum Packs", NULL, false, false); // Non-interactive header
             drawDrumPackSelectionMenu();
             ImGui::EndMenu();
         }
@@ -267,36 +301,7 @@ void DrumView::drawMenuBar()
     {
         ImGui::OpenPopup("SavePresetPopup");
     }
-
-    if (ImGui::BeginPopup("SavePresetPopup"))
-    {
-        static char preset_name[64] = "New Preset";
-
-        ImGui::InputText("Preset Name", preset_name, sizeof(preset_name));
-
-        int bpm = drum_controller_.getBpm();
-        int drum_pack_idx = drum_controller_.getDrumPackIdx(drum_controller_.getCurrDrumPack());
-        std::array<float, NUM_TRACKS> track_volumes = drum_controller_.getTrackVolumes();
-
-        auto tracks = drum_controller_.getTracks();
-        std::array<Track_t, NUM_TRACKS> track_patterns;
-        for (int i = 0; i < NUM_TRACKS; i++)
-        {
-            track_patterns.at(i) = tracks.at(i).getTrackSequencer();
-        }
-
-        std::cout << "Saving Preset with name: " << preset_name << ", drum pack idx: " << drum_pack_idx << ", bpm: " << bpm << "\n";
-
-        Preset new_preset(preset_name, drum_pack_idx, track_patterns, bpm, track_volumes);
-
-        if (ImGui::Button("Save Preset"))
-        {
-            drum_controller_.addPreset(new_preset);
-            ImGui::CloseCurrentPopup();
-        }
-
-        ImGui::EndPopup();
-    }
+    drawSavePresetPopup();
 }
 
 void DrumView::drawMainContainer()
