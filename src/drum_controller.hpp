@@ -5,14 +5,14 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <utility>
 #include "../external/miniaudio/miniaudio.h"
 #include "drum_track_model.hpp"
+#include "drum_types.hpp"
 
-#define MAX_STEPS 16
-#define NUM_TRACKS 8
+#include "presets.hpp"
 
 using namespace std::chrono_literals;
-using Track_t = std::array<bool, MAX_STEPS>;
 
 class DrumController
 {
@@ -32,10 +32,13 @@ private:
     std::vector<std::string> samples_paths_;
     std::array<ma_sound *, NUM_TRACKS> sounds_;
     std::array<bool, NUM_TRACKS> sound_initialized_;
+
     std::array<float, NUM_TRACKS> track_volumes_;
 
     std::vector<std::string> drum_packs_;
     std::string curr_drum_pack_;
+
+    std::vector<Preset> presets_list_;
 
     ma_engine engine_;
 
@@ -47,13 +50,14 @@ public:
 
     void initSequencer();
     void initSoundArray();
-
+    void initDemoPreset();
     void loadInitialSamples();
     void loadSamples(const std::string sample_path);
 
     void setSequencerNoteTrue(Track_t &track, int index);
     void setSequencerNoteFalse(Track_t &track, int index);
 
+    void updateTracks(std::array<Track_t, NUM_TRACKS> tracks);
     void resetSequencer(Track_t &track);
     void resetAllTracks();
 
@@ -72,22 +76,31 @@ public:
     void setBpm(int bpm);
     int getBpm();
 
+    // Drum Packs
+    // re-scan assets directory for all the drum packs
+    void scanDrumPacks();
     void setDrumPack(int index);
     std::string getCurrDrumPack();
     std::vector<std::string> getDrumPacks();
+    int getDrumPackIdx(std::string drum_pack_path);
 
-    // re-scan assets directory for all the drum packs
-    void scanDrumPacks();
+    // Presets
+    void addPreset(Preset preset);
+    std::vector<Preset> getPresetsList();
+    void loadPreset(int index);
+    void deletePreset(int index);
 
+    // Volume & Sounds
     void setMasterVolume(float value);
     float getMasterVolume();
-
     void initTrackVolumesArr();
+
     ma_sound *getSound(int index);
     float getSoundVolume(int track_idx);
     void setSoundVolume(int track_idx, float value);
     std::array<float, NUM_TRACKS> getTrackVolumes();
 
+    // Playback Controls
     void playSound(int track_idx);
     void playSequencer();
     void pauseSequencer();

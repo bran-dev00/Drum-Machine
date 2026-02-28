@@ -1,6 +1,7 @@
 #pragma once
 
 #include "drum_controller.hpp"
+#include "presets.hpp"
 #include <filesystem>
 #include "imgui.h"
 #include <iostream>
@@ -23,8 +24,11 @@ public:
 
     void drawBeatIndicator();
 
-    void drawDrumPackSelection();
-    void drawMenu();
+    void drawDrumPackSelectionMenu();
+    void drawSavePresetPopup();
+    void drawPresetsMenu();
+
+    void drawMenuBar();
 
     void drawBpmControls(int &bpm);
     void drawMasterVolume(float &volume);

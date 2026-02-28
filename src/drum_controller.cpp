@@ -2,6 +2,8 @@
 #include <string>
 #include <iostream>
 
+// Demo Preset
+
 DrumController::DrumController()
 {
     is_playing_ = false;
@@ -9,7 +11,7 @@ DrumController::DrumController()
     beatCounter_ = 0;
     bpm_ = 90;
     base_assets_dir_ = (std::filesystem::current_path() / L"assets").string();
-    curr_drum_pack_ = "Kit-1";
+    curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"Kit-1").string();
 
     ma_engine_init(NULL, &engine_);
     ma_engine_set_volume(&engine_, .5f);
@@ -21,6 +23,8 @@ DrumController::DrumController()
     initSoundArray();
     initSequencer();
     initTrackVolumesArr();
+
+    initDemoPreset();
 }
 
 DrumController::~DrumController()
@@ -31,6 +35,28 @@ DrumController::~DrumController()
         delete sounds_[i];
     }
     ma_engine_uninit(&engine_);
+}
+
+void DrumController::initDemoPreset()
+{
+    std::array<Track_t, NUM_TRACKS> preset_tracks;
+    std::array<std::string, NUM_TRACKS> demo_preset_tracks = {
+        "1000 0000 0000 0000",
+        "0010 0001 1000 0110",
+        "1111 1111 1111 1111",
+        "0000 0000 0000 0000",
+        "1000 1000 1000 1000",
+        "0111 1110 1111 1100",
+        "0000 0000 0000 0000",
+        "0010 0110 0100 1001"};
+
+    for (size_t i = 0; i < NUM_TRACKS; i++)
+    {
+        preset_tracks.at(i) = Preset::parseStringPattern(demo_preset_tracks.at(i));
+    }
+
+    Preset demo_preset = {"Demo Preset", 0, preset_tracks, 90, track_volumes_};
+    presets_list_.push_back(demo_preset);
 }
 
 // Both ma_sound & string names for data_model
@@ -51,7 +77,6 @@ void DrumController::loadInitialSamples()
     loadSamples(sample_path);
 }
 
-// String Helper Function
 std::string DrumController::extractSampleName(std::string file_path)
 {
     std::string output_str;
@@ -112,6 +137,22 @@ void DrumController::initSequencer()
             tracks_[i] = DrumTrackModel("", "");
             sound_initialized_[i] = false;
         }
+    }
+}
+
+void DrumController::updateTracks(std::array<Track_t, NUM_TRACKS> tracks)
+{
+    if (tracks.empty())
+    {
+        std::cout << "tracks is empty\n";
+        return;
+    }
+
+    for (size_t i = 0; i < NUM_TRACKS; i++)
+    {
+        Track_t track = tracks.at(i);
+
+        tracks_.at(i).getTrackSequencer() = track;
     }
 }
 
@@ -222,8 +263,27 @@ void DrumController::scanDrumPacks()
     }
 }
 
+int DrumController::getDrumPackIdx(std::string drum_pack_path)
+{
+    for (size_t i = 0; i < drum_packs_.size(); i++)
+    {
+        if (drum_packs_.at(i) == drum_pack_path)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 void DrumController::setDrumPack(int index)
 {
+    if (index < 0 || index > drum_packs_.size())
+    {
+        std::cout << "drum_packs_ index out of bounds!\n";
+        return;
+    }
+
     if (curr_drum_pack_ != drum_packs_.at(index))
     {
         is_playing_ = false;
@@ -244,6 +304,41 @@ std::string DrumController::getCurrDrumPack()
 std::vector<std::string> DrumController::getDrumPacks()
 {
     return drum_packs_;
+}
+
+void DrumController::loadPreset(int index)
+{
+    if (presets_list_.empty())
+    {
+        return;
+    }
+
+    Preset preset = presets_list_.at(index);
+    setBpm(preset.getPresetBpm());
+    setDrumPack(preset.getPresetDrumPack());
+    updateTracks(preset.getPresetTracks());
+    beatCounter_ = 0;
+}
+
+std::vector<Preset> DrumController::getPresetsList()
+{
+    return presets_list_;
+}
+
+void DrumController::addPreset(Preset preset)
+{
+    presets_list_.push_back(preset);
+}
+
+void DrumController::deletePreset(int index)
+{
+    if (index < 0 || index >= presets_list_.size())
+    {
+        std::cout << "presets_list_ index out of bounds!\n";
+        return;
+    }
+
+    presets_list_.erase(presets_list_.begin() + index);
 }
 
 void DrumController::setBpm(int bpm)
