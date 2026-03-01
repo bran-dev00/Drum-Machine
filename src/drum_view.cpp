@@ -219,6 +219,14 @@ void DrumView::drawDrumPackSelectionMenu()
     }
 }
 
+void DrumView::drawFileMenu()
+{
+    if (ImGui::Button("Save Session"))
+    {
+        drum_controller_.saveSession();
+    }
+}
+
 void DrumView::drawPresetsMenu()
 {
 
@@ -292,6 +300,13 @@ void DrumView::drawMenuBar()
             {
                 open_save_popup = true;
             }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("File"))
+        {
+            ImGui::MenuItem("File", NULL, false, false); // Non-interactive header
+            drawFileMenu();
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();

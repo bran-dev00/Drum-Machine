@@ -6,6 +6,8 @@
 #include <array>
 #include <vector>
 #include <utility>
+#include <fstream>
+
 #include "../external/miniaudio/miniaudio.h"
 #include "drum_track_model.hpp"
 #include "drum_types.hpp"
@@ -27,6 +29,8 @@ private:
     int bpm_;
     int beatCounter_;
     std::string base_assets_dir_;
+    std::string main_session_file_path_;
+
     std::chrono::time_point<std::chrono::steady_clock> lastStep_;
 
     std::vector<std::string> samples_paths_;
@@ -75,6 +79,10 @@ public:
     void step();
     void setBpm(int bpm);
     int getBpm();
+
+    // File
+    void saveSession();
+    void loadSession();
 
     // Drum Packs
     // re-scan assets directory for all the drum packs

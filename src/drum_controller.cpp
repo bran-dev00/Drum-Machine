@@ -12,6 +12,7 @@ DrumController::DrumController()
     bpm_ = 90;
     base_assets_dir_ = (std::filesystem::current_path() / L"assets").string();
     curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"Kit-1").string();
+    main_session_file_path_ = (std::filesystem::current_path() / L"data" / L"main_session.txt").string();
 
     ma_engine_init(NULL, &engine_);
     ma_engine_set_volume(&engine_, .5f);
@@ -317,6 +318,7 @@ void DrumController::loadPreset(int index)
     setBpm(preset.getPresetBpm());
     setDrumPack(preset.getPresetDrumPack());
     updateTracks(preset.getPresetTracks());
+    is_playing_ = false;
     beatCounter_ = 0;
 }
 
@@ -408,6 +410,30 @@ DrumTrackModel &DrumController::getTrackByIndex(int index)
     }
 
     return tracks_.at(index);
+}
+
+void DrumController::saveSession()
+{
+    std::string data_dir = (std::filesystem::current_path() / L"data").string();
+
+    std::ofstream session_file(data_dir + "/main_session.txt");
+    if (session_file.is_open())
+    {
+        session_file << "BPM: " << bpm_ << "\n";
+
+        for (size_t i = 0; i < drum_packs_.size(); i++)
+        {
+            auto drum_pack_path = drum_packs_.at(i);
+            session_file << "Drum Pack " << i << ": " << drum_pack_path << "\n";
+        }
+
+        session_file.close();
+    }
+    else
+    {
+        std::cout << "Failed to open session file for saving!\n";
+        return;
+    }
 }
 
 void DrumController::playSequencer()

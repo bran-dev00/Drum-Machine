@@ -29,6 +29,33 @@ Track_t Preset::parseStringPattern(std::string track_pattern)
     return track;
 }
 
+std::string Preset::presetToString(Preset preset)
+{
+
+    std::string preset_string = preset.getPresetName() + "\n";
+    preset_string += "PRESET_START\n";
+    preset_string += std::to_string(preset.getPresetDrumPack()) + "\n";
+    preset_string += std::to_string(preset.getPresetBpm()) + "\n";
+
+    for (size_t i = 0; i < NUM_TRACKS; i++)
+    {
+        Track_t track = preset.getPresetTracks().at(i);
+        for (size_t j = 0; j < MAX_STEPS; j++)
+        {
+            preset_string += track.at(j) ? "1" : "0";
+        }
+        preset_string += "\n";
+    }
+
+    for (size_t i = 0; i < NUM_TRACKS; i++)
+    {
+        preset_string += std::to_string(preset.getPresetTrackVolumes().at(i)) + "\n";
+    }
+    preset_string += "PRESET_END\n";
+
+    return preset_string;
+}
+
 Preset::Preset(std::string preset_name, int drum_pack_idx, std::array<Track_t, NUM_TRACKS> tracks, int bpm, std::array<float, NUM_TRACKS> track_volumes) : preset_name_(preset_name), drum_pack_idx_(drum_pack_idx), tracks_(tracks), bpm_(bpm), track_volumes_(track_volumes)
 {
 }

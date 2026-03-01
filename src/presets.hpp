@@ -20,6 +20,7 @@ public:
     ~Preset();
 
     static Track_t parseStringPattern(std::string track_pattern);
+    static std::string presetToString(Preset preset);
 
     void setPresetBpm(int bpm);
     void setPresetDrumPack(int idx);

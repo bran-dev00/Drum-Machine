@@ -29,3 +29,6 @@ build/*
 
 #imgui
 imgui.ini
+
+# save files
+data/*.txt
