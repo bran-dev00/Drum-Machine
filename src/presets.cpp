@@ -74,6 +74,14 @@ void Preset::savePresetToFile(Preset preset, std::string file_path)
     }
 }
 
+void Preset::deletePresetFile(std::string file_path)
+{
+    if (std::remove(file_path.c_str()) != 0)
+    {
+        std::cout << "Error deleting preset file: " << file_path << "\n";
+    }
+}
+
 Preset Preset::parsePresetFromFile(std::string file_path)
 {
     std::ifstream preset_file(file_path);

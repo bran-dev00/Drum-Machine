@@ -336,7 +336,6 @@ void DrumController::scanPresets()
 
     presets_list_.clear();
 
-    std::cout << "list size after clear: " << presets_list_.size() << "\n";
     for (const auto &entry : std::filesystem::directory_iterator(presets_dir))
     {
         if (entry.is_regular_file())
@@ -364,16 +363,26 @@ void DrumController::addPreset(Preset preset)
     scanPresets();
 }
 
-// TODO: fix
 void DrumController::deletePreset(int index)
 {
+
+    if (presets_list_.empty())
+    {
+        return;
+    }
+
     if (index < 0 || index >= presets_list_.size())
     {
         std::cout << "presets_list_ index out of bounds!\n";
         return;
     }
 
-    presets_list_.erase(presets_list_.begin() + index);
+    Preset preset_to_delete = presets_list_.at(index);
+    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (preset_to_delete.getPresetName() + ".txt")).string();
+    Preset::deletePresetFile(preset_file_path);
+
+    // update presets_list_
+    scanPresets();
 }
 
 void DrumController::setBpm(int bpm)
