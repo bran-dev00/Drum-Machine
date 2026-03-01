@@ -92,7 +92,7 @@ Preset Preset::parsePresetFromFile(std::string file_path)
         }
         else
         {
-            throw std::runtime_error("Invalid preset file format!");
+            throw std::runtime_error("Invalid preset file format! Expected PRESET_NAME at the beginning.");
         }
 
         std::getline(preset_file, line);
@@ -103,7 +103,7 @@ Preset Preset::parsePresetFromFile(std::string file_path)
         }
         else
         {
-            throw std::runtime_error("Invalid preset file format!");
+            throw std::runtime_error("Invalid preset file format! Expected DRUM_PACK_IDX after PRESET_NAME.");
         }
 
         std::getline(preset_file, line);
@@ -114,13 +114,13 @@ Preset Preset::parsePresetFromFile(std::string file_path)
         }
         else
         {
-            throw std::runtime_error("Invalid preset file format!");
+            throw std::runtime_error("Invalid preset file format! Expected BPM after DRUM_PACK_IDX.");
         }
 
         std::getline(preset_file, line);
         if (line != "SEQUENCE_START")
         {
-            throw std::runtime_error("Invalid preset file format!");
+            throw std::runtime_error("Invalid preset file format! Expected SEQUENCE_START after BPM.");
         }
 
         std::array<Track_t, NUM_TRACKS> tracks;
@@ -133,12 +133,13 @@ Preset Preset::parsePresetFromFile(std::string file_path)
         std::getline(preset_file, line);
         if (line != "SEQUENCE_END")
         {
-            throw std::runtime_error("Invalid preset file format!");
+            throw std::runtime_error("Invalid preset file format! Expected SEQUENCE_END after track patterns.");
         }
 
+        std::getline(preset_file, line);
         if (line != "VOLUMES_START")
         {
-            throw std::runtime_error("Invalid preset file format!");
+            throw std::runtime_error("Invalid preset file format! Expected VOLUMES_START after SEQUENCE_END.");
         }
 
         std::array<float, NUM_TRACKS> track_volumes;
@@ -152,13 +153,13 @@ Preset Preset::parsePresetFromFile(std::string file_path)
         std::getline(preset_file, line);
         if (line != "VOLUMES_END")
         {
-            throw std::runtime_error("Invalid preset file format!");
+            throw std::runtime_error("Invalid preset file format! Expected VOLUMES_END after track volumes.");
         }
 
         std::getline(preset_file, line);
         if (line != "PRESET_END")
         {
-            throw std::runtime_error("Invalid preset file format!");
+            throw std::runtime_error("Invalid preset file format! Expected PRESET_END at the end of the file.");
         }
 
         return preset;

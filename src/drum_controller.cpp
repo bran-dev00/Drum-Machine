@@ -26,6 +26,7 @@ DrumController::DrumController()
     initTrackVolumesArr();
 
     initDemoPreset();
+    scanPresets();
 }
 
 DrumController::~DrumController()
@@ -328,20 +329,39 @@ std::vector<Preset> DrumController::getPresetsList()
 }
 
 // scan presets directory for preset files and update presets_list accordingly
-// TODO: implement the reset
+// TODO: handle preset file parsing errors, skip invalid files and keep/load the valid ones
 void DrumController::scanPresets()
 {
     std::string presets_dir = (std::filesystem::current_path() / L"data" / L"presets").string();
 
     presets_list_.clear();
+
+    std::cout << "list size after clear: " << presets_list_.size() << "\n";
+    for (const auto &entry : std::filesystem::directory_iterator(presets_dir))
+    {
+        if (entry.is_regular_file())
+        {
+            std::string file_path = entry.path().string();
+            Preset preset = Preset::parsePresetFromFile(file_path);
+            presets_list_.push_back(preset);
+
+            // DEBUG
+            /*   for (size_t i = 0; i < presets_list_.size(); i++)
+              {
+                  std::cout << "list size: " << presets_list_.size() << "\n";
+                  std::cout << "Preset " << i << ": " << presets_list_.at(i).getPresetName() << "\n";
+              } */
+        }
+    }
 }
 
 void DrumController::addPreset(Preset preset)
 {
-    presets_list_.push_back(preset);
-    // Test
     std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (preset.getPresetName() + ".txt")).string();
     Preset::savePresetToFile(preset, preset_file_path);
+
+    // update presets_list_
+    scanPresets();
 }
 
 // TODO: fix
