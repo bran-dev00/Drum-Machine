@@ -12,6 +12,7 @@ DrumController::DrumController()
     bpm_ = 90;
     base_assets_dir_ = (std::filesystem::current_path() / L"assets").string();
     curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"Kit-1").string();
+    main_session_file_path_ = (std::filesystem::current_path() / L"data" / L"main_session.txt").string();
 
     ma_engine_init(NULL, &engine_);
     ma_engine_set_volume(&engine_, .5f);
@@ -25,6 +26,7 @@ DrumController::DrumController()
     initTrackVolumesArr();
 
     initDemoPreset();
+    scanPresets();
 }
 
 DrumController::~DrumController()
@@ -317,6 +319,7 @@ void DrumController::loadPreset(int index)
     setBpm(preset.getPresetBpm());
     setDrumPack(preset.getPresetDrumPack());
     updateTracks(preset.getPresetTracks());
+    is_playing_ = false;
     beatCounter_ = 0;
 }
 
@@ -325,20 +328,61 @@ std::vector<Preset> DrumController::getPresetsList()
     return presets_list_;
 }
 
+// scan presets directory for preset files and update presets_list accordingly
+// TODO: handle preset file parsing errors, skip invalid files and keep/load the valid ones
+void DrumController::scanPresets()
+{
+    std::string presets_dir = (std::filesystem::current_path() / L"data" / L"presets").string();
+
+    presets_list_.clear();
+
+    for (const auto &entry : std::filesystem::directory_iterator(presets_dir))
+    {
+        if (entry.is_regular_file())
+        {
+            std::string file_path = entry.path().string();
+            Preset preset = Preset::parsePresetFromFile(file_path);
+            presets_list_.push_back(preset);
+
+            // DEBUG
+            /*   for (size_t i = 0; i < presets_list_.size(); i++)
+              {
+                  std::cout << "list size: " << presets_list_.size() << "\n";
+                  std::cout << "Preset " << i << ": " << presets_list_.at(i).getPresetName() << "\n";
+              } */
+        }
+    }
+}
+
 void DrumController::addPreset(Preset preset)
 {
-    presets_list_.push_back(preset);
+    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (preset.getPresetName() + ".txt")).string();
+    Preset::savePresetToFile(preset, preset_file_path);
+
+    // update presets_list_
+    scanPresets();
 }
 
 void DrumController::deletePreset(int index)
 {
+
+    if (presets_list_.empty())
+    {
+        return;
+    }
+
     if (index < 0 || index >= presets_list_.size())
     {
         std::cout << "presets_list_ index out of bounds!\n";
         return;
     }
 
-    presets_list_.erase(presets_list_.begin() + index);
+    Preset preset_to_delete = presets_list_.at(index);
+    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (preset_to_delete.getPresetName() + ".txt")).string();
+    Preset::deletePresetFile(preset_file_path);
+
+    // update presets_list_
+    scanPresets();
 }
 
 void DrumController::setBpm(int bpm)
@@ -408,6 +452,30 @@ DrumTrackModel &DrumController::getTrackByIndex(int index)
     }
 
     return tracks_.at(index);
+}
+
+void DrumController::saveSession()
+{
+    std::string data_dir = (std::filesystem::current_path() / L"data").string();
+
+    std::ofstream session_file(data_dir + "/main_session.txt");
+    if (session_file.is_open())
+    {
+        session_file << "BPM: " << bpm_ << "\n";
+
+        for (size_t i = 0; i < drum_packs_.size(); i++)
+        {
+            auto drum_pack_path = drum_packs_.at(i);
+            session_file << "Drum Pack " << i << ": " << drum_pack_path << "\n";
+        }
+
+        session_file.close();
+    }
+    else
+    {
+        std::cout << "Failed to open session file for saving!\n";
+        return;
+    }
 }
 
 void DrumController::playSequencer()

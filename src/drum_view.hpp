@@ -25,7 +25,9 @@ public:
     void drawBeatIndicator();
 
     void drawDrumPackSelectionMenu();
+    void drawFileMenu();
     void drawSavePresetPopup();
+    void drawDeleteSubMenu();
     void drawPresetsMenu();
 
     void drawMenuBar();

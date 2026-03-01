@@ -219,6 +219,36 @@ void DrumView::drawDrumPackSelectionMenu()
     }
 }
 
+void DrumView::drawFileMenu()
+{
+    if (ImGui::Button("Save Session"))
+    {
+        drum_controller_.saveSession();
+    }
+}
+
+void DrumView::drawDeleteSubMenu()
+{
+
+    auto presets_list = drum_controller_.getPresetsList();
+
+    static int selected = 0;
+    for (size_t i = 0; i < presets_list.size(); i++)
+    {
+        std::string preset_name = presets_list.at(i).getPresetName();
+        if (ImGui::Selectable(preset_name.c_str(), selected == i, ImGuiSelectableFlags_DontClosePopups))
+        {
+            selected = i;
+        }
+    }
+
+    if (ImGui::Button("Delete Selected Preset"))
+    {
+        drum_controller_.deletePreset(selected);
+        ImGui::CloseCurrentPopup();
+    }
+}
+
 void DrumView::drawPresetsMenu()
 {
 
@@ -272,8 +302,16 @@ void DrumView::drawSavePresetPopup()
 void DrumView::drawMenuBar()
 {
     bool open_save_popup = false;
+    bool open_delete_menu = false;
     if (ImGui::BeginMenuBar())
     {
+        if (ImGui::BeginMenu("File"))
+        {
+            ImGui::MenuItem("File", NULL, false, false); // Non-interactive header
+            drawFileMenu();
+            ImGui::EndMenu();
+        }
+
         if (ImGui::BeginMenu("Drum Packs"))
         {
             ImGui::MenuItem("Drum Packs", NULL, false, false); // Non-interactive header
@@ -292,8 +330,16 @@ void DrumView::drawMenuBar()
             {
                 open_save_popup = true;
             }
+
+            if (ImGui::BeginMenu("Remove Presets"))
+            {
+                ImGui::MenuItem("Remove Presets", NULL, false, false); // Non-interactive header
+                drawDeleteSubMenu();
+                ImGui::EndMenu();
+            }
             ImGui::EndMenu();
         }
+
         ImGui::EndMenuBar();
     }
 
@@ -301,6 +347,7 @@ void DrumView::drawMenuBar()
     {
         ImGui::OpenPopup("SavePresetPopup");
     }
+
     drawSavePresetPopup();
 }
 

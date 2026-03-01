@@ -4,6 +4,7 @@
 #include <iostream>
 #include <array>
 #include <vector>
+#include <fstream>
 #include "drum_types.hpp"
 
 class Preset
@@ -20,6 +21,11 @@ public:
     ~Preset();
 
     static Track_t parseStringPattern(std::string track_pattern);
+    static std::string presetToString(Preset preset);
+    static Preset parsePresetFromFile(std::string file_path);
+
+    static void savePresetToFile(Preset preset, std::string file_path);
+    static void deletePresetFile(std::string file_path);
 
     void setPresetBpm(int bpm);
     void setPresetDrumPack(int idx);

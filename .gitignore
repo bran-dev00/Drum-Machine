@@ -29,3 +29,8 @@ build/*
 
 #imgui
 imgui.ini
+
+# save files
+data/*.txt
+data/presets/*.txt
+!data/presets/Demo.txt
