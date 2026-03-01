@@ -327,11 +327,24 @@ std::vector<Preset> DrumController::getPresetsList()
     return presets_list_;
 }
 
+// scan presets directory for preset files and update presets_list accordingly
+// TODO: implement the reset
+void DrumController::scanPresets()
+{
+    std::string presets_dir = (std::filesystem::current_path() / L"data" / L"presets").string();
+
+    presets_list_.clear();
+}
+
 void DrumController::addPreset(Preset preset)
 {
     presets_list_.push_back(preset);
+    // Test
+    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (preset.getPresetName() + ".txt")).string();
+    Preset::savePresetToFile(preset, preset_file_path);
 }
 
+// TODO: fix
 void DrumController::deletePreset(int index)
 {
     if (index < 0 || index >= presets_list_.size())

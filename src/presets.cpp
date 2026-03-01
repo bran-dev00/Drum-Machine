@@ -32,11 +32,12 @@ Track_t Preset::parseStringPattern(std::string track_pattern)
 std::string Preset::presetToString(Preset preset)
 {
 
-    std::string preset_string = preset.getPresetName() + "\n";
-    preset_string += "PRESET_START\n";
-    preset_string += std::to_string(preset.getPresetDrumPack()) + "\n";
-    preset_string += std::to_string(preset.getPresetBpm()) + "\n";
+    std::string preset_string = "";
+    preset_string += "PRESET_NAME:" + preset.getPresetName() + "\n";
+    preset_string += "DRUM_PACK_IDX:" + std::to_string(preset.getPresetDrumPack()) + "\n";
+    preset_string += "BPM:" + std::to_string(preset.getPresetBpm()) + "\n";
 
+    preset_string += "SEQUENCE_START\n";
     for (size_t i = 0; i < NUM_TRACKS; i++)
     {
         Track_t track = preset.getPresetTracks().at(i);
@@ -46,14 +47,127 @@ std::string Preset::presetToString(Preset preset)
         }
         preset_string += "\n";
     }
+    preset_string += "SEQUENCE_END\n";
 
+    preset_string += "VOLUMES_START\n";
     for (size_t i = 0; i < NUM_TRACKS; i++)
     {
         preset_string += std::to_string(preset.getPresetTrackVolumes().at(i)) + "\n";
     }
+    preset_string += "VOLUMES_END\n";
     preset_string += "PRESET_END\n";
 
     return preset_string;
+}
+
+void Preset::savePresetToFile(Preset preset, std::string file_path)
+{
+    std::ofstream preset_file(file_path);
+    if (preset_file.is_open())
+    {
+        preset_file << presetToString(preset);
+        preset_file.close();
+    }
+    else
+    {
+        std::cout << "Unable to open file to save preset!\n";
+    }
+}
+
+Preset Preset::parsePresetFromFile(std::string file_path)
+{
+    std::ifstream preset_file(file_path);
+
+    if (preset_file.is_open())
+    {
+        std::string line;
+        // dummy preset
+        Preset preset("", 0, {}, 90, {});
+        std::getline(preset_file, line);
+
+        if (line.rfind("PRESET_NAME:", 0) == 0)
+        {
+            std::string preset_name = line.substr(std::string("PRESET_NAME:").length());
+            preset.setPresetName(preset_name);
+        }
+        else
+        {
+            throw std::runtime_error("Invalid preset file format!");
+        }
+
+        std::getline(preset_file, line);
+        if (line.rfind("DRUM_PACK_IDX:", 0) == 0)
+        {
+            int drum_pack_idx = std::stoi(line.substr(std::string("DRUM_PACK_IDX:").length()));
+            preset.setPresetDrumPack(drum_pack_idx);
+        }
+        else
+        {
+            throw std::runtime_error("Invalid preset file format!");
+        }
+
+        std::getline(preset_file, line);
+        if (line.rfind("BPM:", 0) == 0)
+        {
+            int bpm = std::stoi(line.substr(std::string("BPM:").length()));
+            preset.setPresetBpm(bpm);
+        }
+        else
+        {
+            throw std::runtime_error("Invalid preset file format!");
+        }
+
+        std::getline(preset_file, line);
+        if (line != "SEQUENCE_START")
+        {
+            throw std::runtime_error("Invalid preset file format!");
+        }
+
+        std::array<Track_t, NUM_TRACKS> tracks;
+        for (size_t i = 0; i < NUM_TRACKS; i++)
+        {
+            std::getline(preset_file, line);
+            tracks.at(i) = parseStringPattern(line);
+        }
+        preset.setPresetTracks(tracks);
+        std::getline(preset_file, line);
+        if (line != "SEQUENCE_END")
+        {
+            throw std::runtime_error("Invalid preset file format!");
+        }
+
+        if (line != "VOLUMES_START")
+        {
+            throw std::runtime_error("Invalid preset file format!");
+        }
+
+        std::array<float, NUM_TRACKS> track_volumes;
+        for (size_t i = 0; i < NUM_TRACKS; i++)
+        {
+            std::getline(preset_file, line);
+            track_volumes.at(i) = std::stof(line);
+        }
+        preset.setPresetTrackVolumes(track_volumes);
+
+        std::getline(preset_file, line);
+        if (line != "VOLUMES_END")
+        {
+            throw std::runtime_error("Invalid preset file format!");
+        }
+
+        std::getline(preset_file, line);
+        if (line != "PRESET_END")
+        {
+            throw std::runtime_error("Invalid preset file format!");
+        }
+
+        return preset;
+    }
+    else
+    {
+        std::cout << "Unable to open preset file!\n";
+        throw std::runtime_error("Unable to open preset file!");
+    }
 }
 
 Preset::Preset(std::string preset_name, int drum_pack_idx, std::array<Track_t, NUM_TRACKS> tracks, int bpm, std::array<float, NUM_TRACKS> track_volumes) : preset_name_(preset_name), drum_pack_idx_(drum_pack_idx), tracks_(tracks), bpm_(bpm), track_volumes_(track_volumes)

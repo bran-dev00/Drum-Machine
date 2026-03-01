@@ -93,6 +93,7 @@ public:
     int getDrumPackIdx(std::string drum_pack_path);
 
     // Presets
+    void scanPresets();
     void addPreset(Preset preset);
     std::vector<Preset> getPresetsList();
     void loadPreset(int index);
