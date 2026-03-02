@@ -8,6 +8,10 @@ DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
 {
     // Global Styles
     styles_.FrameRounding = 3.0f;
+    ImGuiIO &io = ImGui::GetIO();
+
+    std::string lexend_font = (std::filesystem::current_path() / L"fonts" / L"Lexend-Medium.ttf").string();
+    io.Fonts->AddFontFromFileTTF(lexend_font.c_str(), 16.0f);
 }
 
 DrumView::~DrumView() = default;
