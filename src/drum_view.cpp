@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <imgui_internal.h>
 
 DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
 {
@@ -29,6 +30,45 @@ void DrumView::drawBeatCounterLabels(const std::array<float, MAX_STEPS> &positio
         ImGui::SetCursorScreenPos(ImVec2(x, y));
         ImGui::TextUnformatted(label.c_str());
     }
+}
+
+void DrumView::drawCustomVolumeSlider(std::string label, int track_idx, float &value, float v_min, float v_max)
+{
+
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    float width = ImGui::CalcItemWidth() / 1.5f;
+    float height = ImGui::GetFrameHeight() / 2.5f;
+
+    ImU32 bg_color = ImGui::GetColorU32(ImGuiCol_FrameBg);
+    ImU32 handle_color = ImGui::GetColorU32(ImVec4(255.0f, 255.0f, 255.0f, 1.0f));
+
+    ImGui::InvisibleButton(label.c_str(), ImVec2(width, height));
+
+    bool is_active = ImGui::IsItemActive();
+    bool clicked = ImGui::IsItemClicked();
+    bool is_hovered = ImGui::IsItemHovered();
+
+    if (is_active)
+    {
+        float mouse_pos = ImGui::GetMousePos().x - p.x;
+        value = v_min + (mouse_pos / width) * (v_max - v_min);
+        value = ImClamp(value, v_min, v_max);
+        drum_controller_.setSoundVolume(track_idx, value);
+    }
+
+    if (is_hovered)
+    {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+        ImGui::RenderMouseCursor(ImGui::GetMousePos(), 1.0f, ImGuiMouseCursor_Hand, bg_color, handle_color, ImGui::GetColorU32(ImVec4(0, 0, 0, 0.5f)));
+    }
+
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), bg_color, height * 0.5f);
+    float fill_width = ((value - v_min) / (v_max - v_min)) * width;
+    draw_list->AddRectFilled(p, ImVec2(p.x + fill_width, p.y + height), handle_color, height * 0.5f);
+
+    float handle_x = p.x + fill_width;
+    draw_list->AddCircleFilled(ImVec2(handle_x, p.y + height * 0.5f), height * 0.75f, handle_color);
 }
 
 void DrumView::drawTrack(int track_idx, Track_t &track, std::array<float, MAX_STEPS> &checkbox_positions)
@@ -104,14 +144,9 @@ void DrumView::drawTracks()
         }
 
         ImGui::SameLine();
+
         ImGui::PushItemWidth(100.0f);
-        {
-            float track_volume = track_volumes.at(i);
-            if (ImGui::SliderFloat("##track_vol", &track_volume, 0, 1))
-            {
-                drum_controller_.setSoundVolume(i, track_volume);
-            }
-        }
+        drawCustomVolumeSlider("Volume", i, track_volumes.at(i), 0, 1);
         ImGui::PopItemWidth();
 
         ImGui::PopID();

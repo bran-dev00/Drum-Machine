@@ -23,6 +23,7 @@ public:
     void drawTracks();
 
     void drawBeatIndicator();
+    void drawCustomVolumeSlider(const std::string label, int track_idx, float &value, float v_min, float v_max);
 
     void drawDrumPackSelectionMenu();
     void drawFileMenu();
