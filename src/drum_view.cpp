@@ -53,7 +53,15 @@ void DrumView::drawCustomVolumeSlider(std::string label, int track_idx, float &v
         float mouse_pos = ImGui::GetMousePos().x - p.x;
         value = v_min + (mouse_pos / width) * (v_max - v_min);
         value = ImClamp(value, v_min, v_max);
-        drum_controller_.setSoundVolume(track_idx, value);
+
+        if (track_idx == -1)
+        {
+            drum_controller_.setMasterVolume(value);
+        }
+        else
+        {
+            drum_controller_.setSoundVolume(track_idx, value);
+        }
     }
 
     if (is_hovered)
@@ -203,12 +211,9 @@ void DrumView::drawBpmControls(int &bpm)
 void DrumView::drawMasterVolume(float &volume)
 {
     ImGui::Text("Master Volume");
-    // ImGui::SameLine();
+
     ImGui::PushItemWidth(100.0f);
-    if (ImGui::SliderFloat("##Master_Volume", &volume, 0, 5))
-    {
-        drum_controller_.setMasterVolume(volume);
-    }
+    drawCustomVolumeSlider("##Master_Volume", -1, volume, 0, 5);
     ImGui::PopItemWidth();
 }
 
@@ -413,7 +418,7 @@ void DrumView::draw()
     {
         ImGui::SetNextWindowSize(ImVec2(current_size.x / 2.5f, current_size.y * 0.8f), ImGuiCond_FirstUseEver);
 
-        ImGui::Begin("Drum View", NULL, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
+        ImGui::Begin("Drum Machine", NULL, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
         ImVec2 window_size = ImGui::GetContentRegionAvail();
 
         drawMenuBar();

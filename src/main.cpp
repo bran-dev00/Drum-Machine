@@ -10,6 +10,7 @@
 
 #include "drum_controller.hpp"
 #include "drum_view.hpp"
+#include "themes.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -36,6 +37,9 @@ int main(int argc, char const *argv[])
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
     ImGui::StyleColorsDark();
+
+    // Custom Theme
+    setCustomTheme();
 
     // Backend Bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true);

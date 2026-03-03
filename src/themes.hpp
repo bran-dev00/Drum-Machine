@@ -1,0 +1,42 @@
+#pragma once
+#include "imgui.h"
+
+static void setCustomTheme()
+{
+
+    ImGuiStyle &style = ImGui::GetStyle();
+    ImVec4 *colors = style.Colors;
+
+    ImColor check_mark_color = ImColor(255, 255, 255, 255);
+    ImColor window_bg_color = ImColor(4, 0, 47, 255);
+
+    ImColor frame_bg_color = ImColor(24, 99, 193, 110);
+    ImColor frame_bg_hovered_color = ImColor(18, 99, 129, 255);
+    ImColor frame_bg_active_color = ImColor(18, 99, 129, 255);
+
+    ImColor button_color = ImColor(71, 102, 232, 255);
+    ImColor button_hovered_color = ImColor(76, 155, 225, 255);
+    ImColor button_active_color = ImColor(76, 155, 225, 255);
+
+    ImColor text_color = ImColor(255, 255, 255, 255);
+    ImColor slider_grab_color = ImColor(226, 239, 255, 255);
+
+    ImColor menu_bar_bg_color = ImColor(30, 50, 123, 255);
+
+    colors[ImGuiCol_WindowBg] = window_bg_color;
+    colors[ImGuiCol_FrameBg] = frame_bg_color;
+    colors[ImGuiCol_FrameBgHovered] = frame_bg_hovered_color;
+    colors[ImGuiCol_FrameBgActive] = frame_bg_active_color;
+
+    colors[ImGuiCol_Button] = button_color;
+    colors[ImGuiCol_ButtonHovered] = button_hovered_color;
+    colors[ImGuiCol_ButtonActive] = button_active_color;
+
+    colors[ImGuiCol_CheckMark] = check_mark_color;
+    colors[ImGuiCol_SliderGrab] = slider_grab_color;
+
+    colors[ImGuiCol_Text] = text_color;
+    colors[ImGuiCol_MenuBarBg] = menu_bar_bg_color;
+    colors[ImGuiCol_TitleBg] = menu_bar_bg_color;
+    colors[ImGuiCol_TitleBgActive] = menu_bar_bg_color;
+}
