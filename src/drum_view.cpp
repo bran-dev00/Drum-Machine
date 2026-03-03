@@ -17,6 +17,20 @@ DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
 
 DrumView::~DrumView() = default;
 
+void DrumView::drawHoverCursor()
+{
+
+    ImU32 color_fill = ImGui::GetColorU32(ImGuiCol_FrameBg);
+    ImU32 color_border = ImGui::GetColorU32(ImVec4(255.0f, 255.0f, 255.0f, 1.0f));
+
+    // Global Hover Cursor
+    if (ImGui::IsAnyItemHovered())
+    {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+        ImGui::RenderMouseCursor(ImGui::GetMousePos(), 1.0f, ImGuiMouseCursor_Hand, color_fill, color_border, ImGui::GetColorU32(ImVec4(0, 0, 0, 0.5f)));
+    }
+}
+
 void DrumView::drawBeatCounterLabels(const std::array<float, MAX_STEPS> &positions)
 {
     float y = ImGui::GetCursorScreenPos().y;
@@ -46,7 +60,6 @@ void DrumView::drawCustomVolumeSlider(std::string label, int track_idx, float &v
 
     bool is_active = ImGui::IsItemActive();
     bool clicked = ImGui::IsItemClicked();
-    bool is_hovered = ImGui::IsItemHovered();
 
     if (is_active)
     {
@@ -62,12 +75,6 @@ void DrumView::drawCustomVolumeSlider(std::string label, int track_idx, float &v
         {
             drum_controller_.setSoundVolume(track_idx, value);
         }
-    }
-
-    if (is_hovered)
-    {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
-        ImGui::RenderMouseCursor(ImGui::GetMousePos(), 1.0f, ImGuiMouseCursor_Hand, bg_color, handle_color, ImGui::GetColorU32(ImVec4(0, 0, 0, 0.5f)));
     }
 
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
@@ -205,6 +212,7 @@ void DrumView::drawBpmControls(int &bpm)
             drum_controller_.setBpm(bpm);
         }
     }
+
     ImGui::PopItemWidth();
 }
 
@@ -424,6 +432,7 @@ void DrumView::draw()
         drawMenuBar();
         ImGui::SetCursorPosX(window_size.x / 8);
         drawMainContainer();
+        drawHoverCursor();
 
         ImGui::NewLine();
         ImGui::End();

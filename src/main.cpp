@@ -36,6 +36,8 @@ int main(int argc, char const *argv[])
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
+
+    // Theme Defaults
     ImGui::StyleColorsDark();
 
     // Custom Theme
