@@ -37,6 +37,7 @@ void DrumView::drawBeatCounterLabels(const std::array<float, MAX_STEPS> &positio
 
     for (size_t i = 0; i < positions.size(); ++i)
     {
+        ImGui::AlignTextToFramePadding();
         std::string label = std::to_string(static_cast<int>(i) + 1);
         ImVec2 text_size = ImGui::CalcTextSize(label.c_str());
         // positions contains the center X of each checkbox
@@ -157,10 +158,14 @@ void DrumView::drawTracks()
         {
             drum_controller_.resetSequencer(track);
         }
-
         ImGui::SameLine();
 
-        ImGui::PushItemWidth(100.0f);
+        float button_height = ImGui::GetFrameHeight();
+        float slider_height = button_height / 2.5f;
+        float vertical_offset = (button_height - slider_height) * 0.5f;
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + vertical_offset);
+
+        ImGui::PushItemWidth(150.0f);
         drawCustomVolumeSlider("Volume", i, track_volumes.at(i), 0, 1);
         ImGui::PopItemWidth();
 
@@ -184,7 +189,6 @@ void DrumView::drawBeatIndicator()
 
 void DrumView::drawResetAllButton()
 {
-    ImGui::AlignTextToFramePadding();
     if (ImGui::Button("Reset All"))
     {
         drum_controller_.resetAllTracks();
@@ -336,8 +340,6 @@ void DrumView::drawSavePresetPopup()
         {
             track_patterns.at(i) = tracks.at(i).getTrackSequencer();
         }
-
-        // std::cout << "Saving Preset with name: " << preset_name << ", drum pack idx: " << drum_pack_idx << ", bpm: " << bpm << "\n";
 
         Preset new_preset(preset_name, drum_pack_idx, track_patterns, bpm, track_volumes);
 
