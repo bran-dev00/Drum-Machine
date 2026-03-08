@@ -28,6 +28,10 @@ int main(int argc, char const *argv[])
         glfwTerminate();
         return 1;
     }
+
+    // restrict min window size
+    glfwSetWindowSizeLimits(window, 800, 800, GLFW_DONT_CARE, GLFW_DONT_CARE);
+
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 

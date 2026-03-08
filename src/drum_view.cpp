@@ -134,8 +134,7 @@ void DrumView::drawTracks(float width)
 
     float checkbox_budget = width * (4.0f / 5.0f);
 
-    float checkbox_size = std::max(1.0f, (checkbox_budget / MAX_STEPS - font_size - item_spacing) * 0.5f);
-    // float checkbox_size = ((width - partition_size) / 16) * 0.5f;
+    float checkbox_size = (std::max)(1.0f, (checkbox_budget / MAX_STEPS - font_size - item_spacing) * 0.5f);
 
     drawBeatIndicator(width);
 
@@ -151,7 +150,7 @@ void DrumView::drawTracks(float width)
 
         ImGui::PushID(i);
 
-        std::cout << "checkbox_size: " << checkbox_size << "\n";
+        // std::cout << "checkbox_size: " << checkbox_size << "\n";
         drawTrack(i, track, checkbox_positions, checkbox_size);
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + checkbox_size - 2.0f);
@@ -199,11 +198,13 @@ void DrumView::drawResetAllButton()
 
 void DrumView::drawBpmControls(int &bpm)
 {
+
+    ImGui::BeginGroup();
     ImGui::AlignTextToFramePadding();
     ImGui::Text("BPM");
     ImGui::SameLine();
 
-    ImGui::PushItemWidth(std::clamp(100.0f, 50.0f, 150.0f));
+    ImGui::PushItemWidth(100.0f);
     if (ImGui::InputInt("##BPM", &bpm, 1, 10))
     {
         if (bpm < 20)
@@ -219,8 +220,8 @@ void DrumView::drawBpmControls(int &bpm)
             drum_controller_.setBpm(bpm);
         }
     }
-
     ImGui::PopItemWidth();
+    ImGui::EndGroup();
 }
 
 void DrumView::drawMasterVolume(float &volume)
@@ -246,16 +247,23 @@ void DrumView::drawTogglePlayButton()
     ImGui::PopItemWidth();
 }
 
-void DrumView::drawControls(float start_x, float x_offset)
+void DrumView::drawControls(float start_x)
 {
     int bpm = drum_controller_.getBpm();
     float volume = drum_controller_.getMasterVolume();
 
     ImGui::SetCursorPosX(start_x);
     drawTogglePlayButton();
-    ImGui::SameLine();
 
-    ImGui::SetCursorPosX(start_x + x_offset);
+    float text_width = ImGui::CalcTextSize("BPM").x;
+    float item_spacing = ImGui::GetStyle().ItemSpacing.x;
+    float input_width = 100.0f;
+    float total_group_size = text_width + item_spacing + input_width;
+
+    float right_align = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().WindowPadding.x;
+
+    ImGui::SameLine();
+    ImGui::SetCursorPosX((right_align - total_group_size) + 5.0f);
     drawBpmControls(bpm);
 
     ImGui::NewLine();
@@ -429,11 +437,7 @@ void DrumView::drawMainContainer(float start_x, float width)
     ImGui::SetCursorPosX(start_x);
     ImGui::BeginChild("##MainContainer", ImVec2(width, 0), false, ImGuiChildFlags_FrameStyle);
 
-    // DEBUG TEST LINE
-    ImDrawList *draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddLine(ImVec2(0, 400), ImVec2(start_x + width, 400), test_color, 2.0f);
-
-    drawControls(0, (width - partition));
+    drawControls(0);
     drawTracks(width);
 
     ImGui::EndChild();
@@ -442,8 +446,6 @@ void DrumView::drawMainContainer(float start_x, float width)
 
 void DrumView::drawDebug()
 {
-
-    float text_width = ImGui::CalcTextSize("DEBUG1").x;
     float partition = getPartitionSize();
 
     ImGui::SetCursorPosY(25.0f);
@@ -471,17 +473,37 @@ void DrumView::draw()
         ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
         ImGui::SetNextWindowSize(display, ImGuiCond_Always);
 
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus;
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollWithMouse;
 
         ImGui::Begin("Drum Machine", NULL, window_flags);
         drawMenuBar();
-        drawDebug();
 
         float partition_size = getPartitionSize();
         float scale = getScaleFactor();
 
-        float start_x = partition_size * 2;
-        drawMainContainer(start_x, partition_size * 4);
+        // Breakpoints
+        float start_x = partition_size;
+        float end_x = partition_size;
+
+        if (display.x > 0 && display.x <= SCR_SM)
+        {
+            start_x = partition_size;
+            end_x = partition_size * 7 - (partition_size / 2);
+        }
+        else if (display.x > SCR_SM && display.x <= SCR_MD)
+        {
+            start_x = partition_size;
+            end_x = partition_size * 6;
+        }
+        else
+        {
+            start_x = partition_size * 2;
+            end_x = partition_size * 4;
+        }
+
+        float y_offset = 25.0f;
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + y_offset);
+        drawMainContainer(start_x, end_x);
 
         drawHoverCursor();
         ImGui::NewLine();

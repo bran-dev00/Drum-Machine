@@ -1,5 +1,4 @@
 #pragma once
-
 #include "drum_controller.hpp"
 #include "presets.hpp"
 #include <filesystem>
@@ -11,7 +10,7 @@
 #include <vector>
 #include <iostream>
 
-#define SCR_SM 760
+#define SCR_SM 800
 #define SCR_MD 1024
 #define SCR_LG 1440
 #define SCR_XL 1920
@@ -63,7 +62,7 @@ public:
     void drawMasterVolume(float &volume);
     void drawTogglePlayButton();
 
-    void drawControls(float start_x, float x_offset);
+    void drawControls(float start_x);
     void drawResetAllButton();
     void drawMainContainer(float start_x, float width);
 
