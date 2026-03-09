@@ -28,7 +28,7 @@ private:
     bool is_playing_;
     int bpm_;
     int beatCounter_;
-    std::string base_assets_dir_;
+    std::string drum_kit_assets_path_;
     std::string main_session_file_path_;
 
     std::chrono::time_point<std::chrono::steady_clock> lastStep_;
