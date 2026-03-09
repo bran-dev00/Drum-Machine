@@ -52,6 +52,7 @@ public:
 
     void drawDrumPackSelectionMenu();
     void drawFileMenu();
+    Preset savedCurrentPreset(std::string preset_name);
     void drawSavePresetPopup();
     void drawDeleteSubMenu();
     void drawPresetsMenu();

@@ -33,4 +33,5 @@ imgui.ini
 # save files
 data/*.txt
 data/presets/*.txt
+data/main_session/*.txt
 !data/presets/Demo.txt
