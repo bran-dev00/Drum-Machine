@@ -481,7 +481,7 @@ void DrumController::loadSession()
         }
         else
         {
-            std::cout << "main_session.txt was not found, creating default main_session.txt\n";
+            std::cout << "main_session.txt bad format, creating default blank main_session.txt\n";
 
             Preset preset = initBlankPreset();
             preset.setPresetName("Main_Session");
@@ -490,7 +490,19 @@ void DrumController::loadSession()
     }
     else
     {
-        std::cout << "could not open filepath: " << main_session_file_path_ << std::endl;
+        // create new main_session file
+        std::ofstream session_file(main_session_file_path_);
+        if (session_file.is_open())
+        {
+
+            Preset preset = initBlankPreset();
+            preset.setPresetName("Main_Session");
+            Preset::savePresetToFile(preset, main_session_file_path_);
+        }
+        else
+        {
+            std::cout << "failed to open/create session-file: " << main_session_file_path_ << "\n";
+        }
     }
 }
 
