@@ -65,7 +65,7 @@ int main(int argc, char const *argv[])
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::ShowDemoWindow();
+        // ImGui::ShowDemoWindow();
 
         drum_controller->step();
         drum_view->draw();
