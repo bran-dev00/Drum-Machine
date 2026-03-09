@@ -298,9 +298,10 @@ void DrumView::drawDrumPackSelectionMenu()
 
 void DrumView::drawFileMenu()
 {
+    Preset main_session = savedCurrentPreset("Main Session");
     if (ImGui::Button("Save Session"))
     {
-        drum_controller_.saveSession();
+        drum_controller_.saveSession(main_session);
     }
 }
 
@@ -338,9 +339,26 @@ void DrumView::drawPresetsMenu()
         if (ImGui::Selectable(preset_name.c_str(), selected == i))
         {
             selected = i;
-            drum_controller_.loadPreset(i);
+            drum_controller_.loadPreset(presets_list.at(i));
         }
     }
+}
+
+Preset DrumView::savedCurrentPreset(std::string preset_name)
+{
+    int bpm = drum_controller_.getBpm();
+    int drum_pack_idx = drum_controller_.getDrumPackIdx(drum_controller_.getCurrDrumPack());
+    std::array<float, NUM_TRACKS> track_volumes = drum_controller_.getTrackVolumes();
+
+    auto tracks = drum_controller_.getTracks();
+    std::array<Track_t, NUM_TRACKS> track_patterns;
+    for (int i = 0; i < NUM_TRACKS; i++)
+    {
+        track_patterns.at(i) = tracks.at(i).getTrackSequencer();
+    }
+
+    Preset new_preset(preset_name, drum_pack_idx, track_patterns, bpm, track_volumes);
+    return new_preset;
 }
 
 void DrumView::drawSavePresetPopup()
@@ -348,21 +366,9 @@ void DrumView::drawSavePresetPopup()
     if (ImGui::BeginPopup("SavePresetPopup"))
     {
         static char preset_name[64] = "New Preset";
-
         ImGui::InputText("Preset Name", preset_name, sizeof(preset_name));
 
-        int bpm = drum_controller_.getBpm();
-        int drum_pack_idx = drum_controller_.getDrumPackIdx(drum_controller_.getCurrDrumPack());
-        std::array<float, NUM_TRACKS> track_volumes = drum_controller_.getTrackVolumes();
-
-        auto tracks = drum_controller_.getTracks();
-        std::array<Track_t, NUM_TRACKS> track_patterns;
-        for (int i = 0; i < NUM_TRACKS; i++)
-        {
-            track_patterns.at(i) = tracks.at(i).getTrackSequencer();
-        }
-
-        Preset new_preset(preset_name, drum_pack_idx, track_patterns, bpm, track_volumes);
+        Preset new_preset = savedCurrentPreset(preset_name);
 
         if (ImGui::Button("Save Preset"))
         {

@@ -54,7 +54,7 @@ public:
 
     void initSequencer();
     void initSoundArray();
-    void initDemoPreset();
+    Preset initBlankPreset();
     void loadInitialSamples();
     void loadSamples(const std::string sample_path);
 
@@ -81,7 +81,7 @@ public:
     int getBpm();
 
     // File
-    void saveSession();
+    void saveSession(Preset preset);
     void loadSession();
 
     // Drum Packs
@@ -96,7 +96,7 @@ public:
     void scanPresets();
     void addPreset(Preset preset);
     std::vector<Preset> getPresetsList();
-    void loadPreset(int index);
+    void loadPreset(Preset preset);
     void deletePreset(int index);
 
     // Volume & Sounds

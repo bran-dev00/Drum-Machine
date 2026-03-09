@@ -2,18 +2,16 @@
 #include <string>
 #include <iostream>
 
-// Demo Preset
-
 DrumController::DrumController()
 {
     is_playing_ = false;
     lastStep_ = std::chrono::steady_clock::now();
     beatCounter_ = 0;
     bpm_ = 90;
-    drum_kit_assets_path_ = (std::filesystem::current_path() / L"assets" / L"drum-kits").string();
-    curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"drum-kit" / L"Kit-1").string();
 
-    main_session_file_path_ = (std::filesystem::current_path() / L"data" / L"main_session.txt").string();
+    drum_kit_assets_path_ = (std::filesystem::current_path() / L"assets" / L"drum-kits").string();
+    curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"drum-kits" / L"Kit-1").string();
+    main_session_file_path_ = (std::filesystem::current_path() / L"data" / L"main_session" / L"main_session.txt").string();
 
     ma_engine_init(NULL, &engine_);
     ma_engine_set_volume(&engine_, .5f);
@@ -26,7 +24,6 @@ DrumController::DrumController()
     initSequencer();
     initTrackVolumesArr();
 
-    initDemoPreset();
     scanPresets();
 }
 
@@ -40,26 +37,30 @@ DrumController::~DrumController()
     ma_engine_uninit(&engine_);
 }
 
-void DrumController::initDemoPreset()
+Preset DrumController::initBlankPreset()
 {
     std::array<Track_t, NUM_TRACKS> preset_tracks;
     std::array<std::string, NUM_TRACKS> demo_preset_tracks = {
-        "1000 0000 0000 0000",
-        "0010 0001 1000 0110",
-        "1111 1111 1111 1111",
         "0000 0000 0000 0000",
-        "1000 1000 1000 1000",
-        "0111 1110 1111 1100",
         "0000 0000 0000 0000",
-        "0010 0110 0100 1001"};
+        "0000 0000 0000 0000",
+        "0000 0000 0000 0000",
+        "0000 0000 0000 0000",
+        "0000 0000 0000 0000",
+        "0000 0000 0000 0000",
+        "0000 0000 0000 0000",
+    };
+
+    std::array<float, NUM_TRACKS> default_volumes;
+    default_volumes.fill(1.0);
 
     for (size_t i = 0; i < NUM_TRACKS; i++)
     {
         preset_tracks.at(i) = Preset::parseStringPattern(demo_preset_tracks.at(i));
     }
 
-    Preset demo_preset = {"Demo Preset", 0, preset_tracks, 90, track_volumes_};
-    presets_list_.push_back(demo_preset);
+    Preset blank_preset = {"BlankPreset", 0, preset_tracks, 90, default_volumes};
+    return blank_preset;
 }
 
 // Both ma_sound & string names for data_model
@@ -309,14 +310,8 @@ std::vector<std::string> DrumController::getDrumPacks()
     return drum_packs_;
 }
 
-void DrumController::loadPreset(int index)
+void DrumController::loadPreset(Preset preset)
 {
-    if (presets_list_.empty())
-    {
-        return;
-    }
-
-    Preset preset = presets_list_.at(index);
     setBpm(preset.getPresetBpm());
     setDrumPack(preset.getPresetDrumPack());
     updateTracks(preset.getPresetTracks());
@@ -455,27 +450,47 @@ DrumTrackModel &DrumController::getTrackByIndex(int index)
     return tracks_.at(index);
 }
 
-void DrumController::saveSession()
+void DrumController::saveSession(Preset preset)
 {
-    std::string data_dir = (std::filesystem::current_path() / L"data").string();
+    std::ofstream session_file(main_session_file_path_);
 
-    std::ofstream session_file(data_dir + "/main_session.txt");
     if (session_file.is_open())
     {
-        session_file << "BPM: " << bpm_ << "\n";
-
-        for (size_t i = 0; i < drum_packs_.size(); i++)
-        {
-            auto drum_pack_path = drum_packs_.at(i);
-            session_file << "Drum Pack " << i << ": " << drum_pack_path << "\n";
-        }
-
+        Preset::savePresetToFile(preset, main_session_file_path_);
         session_file.close();
     }
     else
     {
-        std::cout << "Failed to open session file for saving!\n";
-        return;
+        std::cout << "could not open filepath: " << main_session_file_path_ << "\n";
+    }
+}
+
+void DrumController::loadSession()
+{
+    std::ifstream session_file(main_session_file_path_);
+    if (session_file.is_open())
+    {
+        // check not empty / bad-format
+        std::string line;
+        std::getline(session_file, line);
+
+        if (line.rfind("PRESET_NAME:", 0) == 0)
+        {
+            Preset preset = Preset::parsePresetFromFile(main_session_file_path_);
+            loadPreset(preset);
+        }
+        else
+        {
+            std::cout << "main_session.txt was not found, creating default main_session.txt\n";
+
+            Preset preset = initBlankPreset();
+            preset.setPresetName("Main_Session");
+            Preset::savePresetToFile(preset, main_session_file_path_);
+        }
+    }
+    else
+    {
+        std::cout << "could not open filepath: " << main_session_file_path_ << std::endl;
     }
 }
 

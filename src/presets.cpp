@@ -31,7 +31,6 @@ Track_t Preset::parseStringPattern(std::string track_pattern)
 
 std::string Preset::presetToString(Preset preset)
 {
-
     std::string preset_string = "";
     preset_string += "PRESET_NAME:" + preset.getPresetName() + "\n";
     preset_string += "DRUM_PACK_IDX:" + std::to_string(preset.getPresetDrumPack()) + "\n";
