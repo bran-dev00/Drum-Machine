@@ -10,8 +10,9 @@ DrumController::DrumController()
     lastStep_ = std::chrono::steady_clock::now();
     beatCounter_ = 0;
     bpm_ = 90;
-    base_assets_dir_ = (std::filesystem::current_path() / L"assets").string();
-    curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"Kit-1").string();
+    drum_kit_assets_path_ = (std::filesystem::current_path() / L"assets" / L"drum-kits").string();
+    curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"drum-kit" / L"Kit-1").string();
+
     main_session_file_path_ = (std::filesystem::current_path() / L"data" / L"main_session.txt").string();
 
     ma_engine_init(NULL, &engine_);
@@ -75,7 +76,7 @@ void DrumController::loadSamples(const std::string sample_path)
 
 void DrumController::loadInitialSamples()
 {
-    std::string sample_path = (std::filesystem::current_path() / L"assets" / L"Kit-1").string();
+    std::string sample_path = (std::filesystem::current_path() / L"assets" / L"drum-kits" / L"Kit-1").string();
     loadSamples(sample_path);
 }
 
@@ -256,7 +257,7 @@ std::array<float, NUM_TRACKS> DrumController::getTrackVolumes()
 
 void DrumController::scanDrumPacks()
 {
-    for (const auto &entry : std::filesystem::directory_iterator(base_assets_dir_))
+    for (const auto &entry : std::filesystem::directory_iterator(drum_kit_assets_path_))
     {
         if (entry.is_directory())
         {

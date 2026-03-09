@@ -37,6 +37,9 @@ add_executable(DrumMachine src/main.cpp src/drum_view.cpp external/miniaudio/min
 add_library(drum_controller STATIC src/drum_controller.cpp src/drum_track_model.cpp src/presets.cpp)
 target_include_directories(drum_controller PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
+#stb
+target_include_directories(DrumMachine PRIVATE ${CMAKE_SOURCE_DIR}/external/stb_image)
+
 # add_library(miniaudio STATIC external/miniaudio/miniaudio.cpp)
 
 target_link_libraries(DrumMachine PRIVATE drum_controller imgui glfw OpenGL::GL)

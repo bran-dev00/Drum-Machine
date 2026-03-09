@@ -8,6 +8,9 @@
 #include "imgui_impl_opengl2.h"
 #include <GLFW/glfw3.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "drum_controller.hpp"
 #include "drum_view.hpp"
 #include "themes.hpp"
@@ -20,8 +23,9 @@ int main(int argc, char const *argv[])
         return 1;
 
     // Create window with OpenGL context
-
     float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
+
+    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     GLFWwindow *window = glfwCreateWindow((int)(1920 * main_scale), (int)(1080 * main_scale), "Drum Machine", NULL, NULL);
     if (window == NULL)
     {
@@ -46,6 +50,13 @@ int main(int argc, char const *argv[])
 
     // Custom Theme
     setCustomTheme();
+
+    // Window Icon
+    GLFWimage images[1];
+    std::string icon_path = (std::filesystem::current_path() / L"assets" / L"images" / L"desktop_icon.png").string();
+    images[0].pixels = stbi_load(icon_path.c_str(), &images[0].width, &images[0].height, 0, 4);
+
+    glfwSetWindowIcon(window, 1, images);
 
     // Backend Bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true);
