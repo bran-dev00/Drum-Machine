@@ -10,6 +10,7 @@
 
 #include "drum_controller.hpp"
 #include "drum_view.hpp"
+#include "themes.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -27,6 +28,10 @@ int main(int argc, char const *argv[])
         glfwTerminate();
         return 1;
     }
+
+    // restrict min window size
+    glfwSetWindowSizeLimits(window, 800, 800, GLFW_DONT_CARE, GLFW_DONT_CARE);
+
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 
@@ -35,7 +40,12 @@ int main(int argc, char const *argv[])
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
+
+    // Theme Defaults
     ImGui::StyleColorsDark();
+
+    // Custom Theme
+    setCustomTheme();
 
     // Backend Bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -56,14 +66,16 @@ int main(int argc, char const *argv[])
         ImGui::NewFrame();
 
         ImGui::ShowDemoWindow();
+
         drum_controller->step();
         drum_view->draw();
 
         ImGui::Render();
+
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+        glClearColor(0.40f, 0.60, 0.47f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
