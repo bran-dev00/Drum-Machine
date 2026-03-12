@@ -5,7 +5,11 @@
 #include <array>
 #include <vector>
 #include <fstream>
+#include <filesystem>
 #include "drum_types.hpp"
+
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 class Preset
 {
@@ -17,6 +21,7 @@ private:
     std::array<float, NUM_TRACKS> track_volumes_;
 
 public:
+    Preset() = default;
     Preset(std::string preset_name, int drum_pack_idx, std::array<Track_t, NUM_TRACKS> tracks, int bpm, std::array<float, NUM_TRACKS> track_volumes);
     ~Preset();
 
@@ -24,8 +29,20 @@ public:
     static std::string presetToString(Preset preset);
     static Preset parsePresetFromFile(std::string file_path);
 
+    // to_json
+    // to_string?
+    // to_preset
+
     static void savePresetToFile(Preset preset, std::string file_path);
+    static Preset loadPresetFromFile(std::string file_path);
+
+    static void savePresetJsonToFile(Preset &preset, const std::string &file_path);
+    static void deletePresetJsonFile(Preset &preset, const std::string &file_path);
+
     static void deletePresetFile(std::string file_path);
+
+    friend void to_json(json &j, const Preset preset);
+    friend void from_json(const json &j, Preset &preset);
 
     void setPresetBpm(int bpm);
     void setPresetDrumPack(int idx);

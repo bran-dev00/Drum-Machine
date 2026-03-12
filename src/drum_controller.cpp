@@ -337,23 +337,43 @@ void DrumController::scanPresets()
         if (entry.is_regular_file())
         {
             std::string file_path = entry.path().string();
-            Preset preset = Preset::parsePresetFromFile(file_path);
+            // Preset preset = Preset::parsePresetFromFile(file_path);
+            Preset preset = Preset::loadPresetFromFile(file_path);
             presets_list_.push_back(preset);
 
             // DEBUG
-            /*   for (size_t i = 0; i < presets_list_.size(); i++)
-              {
-                  std::cout << "list size: " << presets_list_.size() << "\n";
-                  std::cout << "Preset " << i << ": " << presets_list_.at(i).getPresetName() << "\n";
-              } */
+            for (size_t i = 0; i < presets_list_.size(); i++)
+            {
+                std::cout << "list size: " << presets_list_.size() << "\n";
+                std::cout << "Preset " << i << ": " << presets_list_.at(i).getPresetName() << "\n";
+            }
         }
     }
 }
 
+// helper function
+static std::string toSnakeCase(std::string input_str)
+{
+    std::string output_str = input_str;
+
+    std::replace(output_str.begin(), output_str.end(), ' ', '_');
+
+    // to lowercase
+    std::transform(output_str.begin(), output_str.end(), output_str.begin(),
+                   [](unsigned char c)
+                   { return static_cast<unsigned char>(std::tolower(c)); });
+
+    return output_str;
+}
+
 void DrumController::addPreset(Preset preset)
 {
-    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (preset.getPresetName() + ".txt")).string();
-    Preset::savePresetToFile(preset, preset_file_path);
+    // std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (preset.getPresetName() + ".txt")).string();
+
+    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (toSnakeCase(preset.getPresetName()) + ".json")).string();
+
+    // Preset::savePresetToFile(preset, preset_file_path);
+    Preset::savePresetJsonToFile(preset, preset_file_path);
 
     // update presets_list_
     scanPresets();

@@ -40,9 +40,14 @@ target_include_directories(drum_controller PUBLIC ${CMAKE_SOURCE_DIR}/src)
 #stb
 target_include_directories(DrumMachine PRIVATE ${CMAKE_SOURCE_DIR}/external/stb_image)
 
-# add_library(miniaudio STATIC external/miniaudio/miniaudio.cpp)
+#json
+add_library(nlohmann_json INTERFACE)
+target_include_directories(nlohmann_json INTERFACE ${CMAKE_SOURCE_DIR}/external)
+target_include_directories(DrumMachine PRIVATE ${CMAKE_SOURCE_DIR}/external)
 
-target_link_libraries(DrumMachine PRIVATE drum_controller imgui glfw OpenGL::GL)
+
+target_link_libraries(drum_controller PUBLIC nlohmann_json)
+target_link_libraries(DrumMachine PRIVATE drum_controller imgui glfw OpenGL::GL nlohmann_json)
 
 if(WIN32)
 	# On Windows also link to winmm and ensure drum_controller is linked
