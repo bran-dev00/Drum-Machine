@@ -67,6 +67,7 @@ int main(int argc, char const *argv[])
     auto drum_view = new DrumView(*drum_controller);
 
     // load main session
+
     drum_controller->loadSession();
 
     // Main loop

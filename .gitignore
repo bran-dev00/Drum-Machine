@@ -31,7 +31,10 @@ build/*
 imgui.ini
 
 # save files
-data/*.txt
-data/presets/*.txt
-data/main_session/*.txt
-!data/presets/Demo.txt
+data/*.json
+data/presets/*.json
+data/main_session/*.json
+
+#only commit demo 
+!data/presets/demo.json
+

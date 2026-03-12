@@ -11,7 +11,7 @@ DrumController::DrumController()
 
     drum_kit_assets_path_ = (std::filesystem::current_path() / L"assets" / L"drum-kits").string();
     curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"drum-kits" / L"Kit-1").string();
-    main_session_file_path_ = (std::filesystem::current_path() / L"data" / L"main_session" / L"main_session.txt").string();
+    main_session_file_path_ = (std::filesystem::current_path() / L"data" / L"main_session" / L"main_session.json").string();
 
     ma_engine_init(NULL, &engine_);
     ma_engine_set_volume(&engine_, .5f);
@@ -220,6 +220,7 @@ void DrumController::setMasterVolume(float value = .5f)
     {
         volume_ = 0;
     }
+
     // TODO: Volume Limit
     volume_ = value;
     ma_engine_set_volume(&engine_, value);
@@ -337,23 +338,39 @@ void DrumController::scanPresets()
         if (entry.is_regular_file())
         {
             std::string file_path = entry.path().string();
-            Preset preset = Preset::parsePresetFromFile(file_path);
+            // Preset preset = Preset::parsePresetFromFile(file_path);
+            Preset preset = Preset::loadPresetFromFile(file_path);
             presets_list_.push_back(preset);
 
             // DEBUG
-            /*   for (size_t i = 0; i < presets_list_.size(); i++)
-              {
-                  std::cout << "list size: " << presets_list_.size() << "\n";
-                  std::cout << "Preset " << i << ": " << presets_list_.at(i).getPresetName() << "\n";
-              } */
+            /* for (size_t i = 0; i < presets_list_.size(); i++)
+            {
+                std::cout << "list size: " << presets_list_.size() << "\n";
+                std::cout << "Preset " << i << ": " << presets_list_.at(i).getPresetName() << "\n";
+            } */
         }
     }
 }
 
+// helper function
+static std::string toSnakeCase(std::string input_str)
+{
+    std::string output_str = input_str;
+
+    std::replace(output_str.begin(), output_str.end(), ' ', '_');
+
+    // to lowercase
+    std::transform(output_str.begin(), output_str.end(), output_str.begin(),
+                   [](unsigned char c)
+                   { return static_cast<unsigned char>(std::tolower(c)); });
+
+    return output_str;
+}
+
 void DrumController::addPreset(Preset preset)
 {
-    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (preset.getPresetName() + ".txt")).string();
-    Preset::savePresetToFile(preset, preset_file_path);
+    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (toSnakeCase(preset.getPresetName()) + ".json")).string();
+    Preset::savePresetJsonToFile(preset, preset_file_path);
 
     // update presets_list_
     scanPresets();
@@ -374,7 +391,7 @@ void DrumController::deletePreset(int index)
     }
 
     Preset preset_to_delete = presets_list_.at(index);
-    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (preset_to_delete.getPresetName() + ".txt")).string();
+    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (toSnakeCase(preset_to_delete.getPresetName()) + ".json")).string();
     Preset::deletePresetFile(preset_file_path);
 
     // update presets_list_
@@ -456,7 +473,7 @@ void DrumController::saveSession(Preset preset)
 
     if (session_file.is_open())
     {
-        Preset::savePresetToFile(preset, main_session_file_path_);
+        Preset::savePresetJsonToFile(preset, main_session_file_path_);
         session_file.close();
     }
     else
@@ -470,23 +487,8 @@ void DrumController::loadSession()
     std::ifstream session_file(main_session_file_path_);
     if (session_file.is_open())
     {
-        // check not empty / bad-format
-        std::string line;
-        std::getline(session_file, line);
-
-        if (line.rfind("PRESET_NAME:", 0) == 0)
-        {
-            Preset preset = Preset::parsePresetFromFile(main_session_file_path_);
-            loadPreset(preset);
-        }
-        else
-        {
-            std::cout << "main_session.txt bad format, creating default blank main_session.txt\n";
-
-            Preset preset = initBlankPreset();
-            preset.setPresetName("Main_Session");
-            Preset::savePresetToFile(preset, main_session_file_path_);
-        }
+        Preset preset = Preset::loadPresetFromFile(main_session_file_path_);
+        loadPreset(preset);
     }
     else
     {
@@ -494,10 +496,9 @@ void DrumController::loadSession()
         std::ofstream session_file(main_session_file_path_);
         if (session_file.is_open())
         {
-
             Preset preset = initBlankPreset();
             preset.setPresetName("Main_Session");
-            Preset::savePresetToFile(preset, main_session_file_path_);
+            Preset::savePresetJsonToFile(preset, main_session_file_path_);
         }
         else
         {
