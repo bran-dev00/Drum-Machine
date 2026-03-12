@@ -36,7 +36,5 @@ data/presets/*.json
 data/main_session/*.json
 
 #only commit demo 
-!data/preset/demo.json
+!data/presets/demo.json
 
-data/main_session/*.txt
-!data/presets/Demo.txt
