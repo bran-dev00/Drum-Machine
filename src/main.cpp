@@ -67,7 +67,8 @@ int main(int argc, char const *argv[])
     auto drum_view = new DrumView(*drum_controller);
 
     // load main session
-    // drum_controller->loadSession();
+
+    drum_controller->loadSession();
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -96,8 +97,8 @@ int main(int argc, char const *argv[])
         glfwSwapBuffers(window);
     }
 
-    // Preset main_session_before_close = drum_view->savedCurrentPreset("Main_Session");
-    // drum_controller->saveSession(main_session_before_close);
+    Preset main_session_before_close = drum_view->savedCurrentPreset("Main_Session");
+    drum_controller->saveSession(main_session_before_close);
 
     // Cleanup
     ImGui_ImplOpenGL2_Shutdown();
