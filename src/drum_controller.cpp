@@ -9,12 +9,18 @@ DrumController::DrumController()
     beatCounter_ = 0;
     bpm_ = 90;
 
-    drum_kit_assets_path_ = (std::filesystem::current_path() / L"assets" / L"drum-kits").string();
-    curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"drum-kits" / L"Kit-1").string();
+    drum_kit_assets_path_ = (std::filesystem::current_path() / L"assets" / L"samples").string();
+    curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"samples" / L"Kit-1").string();
+
+    drum_packs_save_dir_ = (std::filesystem::current_path() / L"data" / L"drum-kits");
+    samples_root_dir_ = (std::filesystem::current_path() / L"assets" / L"samples");
+
     main_session_file_path_ = (std::filesystem::current_path() / L"data" / L"main_session" / L"main_session.json").string();
 
     ma_engine_init(NULL, &engine_);
     ma_engine_set_volume(&engine_, .5f);
+
+    DrumPackManager drum_pack_manager = DrumPackManager(samples_root_dir_, drum_packs_save_dir_);
 
     // first initialization
     sound_initialized_.fill(false);
@@ -77,7 +83,7 @@ void DrumController::loadSamples(const std::string sample_path)
 
 void DrumController::loadInitialSamples()
 {
-    std::string sample_path = (std::filesystem::current_path() / L"assets" / L"drum-kits" / L"Kit-1").string();
+    std::string sample_path = (std::filesystem::current_path() / L"assets" / L"samples" / L"Kit-1").string();
     loadSamples(sample_path);
 }
 
@@ -256,6 +262,8 @@ std::array<float, NUM_TRACKS> DrumController::getTrackVolumes()
     }
     return track_volumes_;
 }
+
+//---Drum Packs---
 
 void DrumController::scanDrumPacks()
 {
@@ -467,6 +475,7 @@ DrumTrackModel &DrumController::getTrackByIndex(int index)
     return tracks_.at(index);
 }
 
+// Main Session File Saving
 void DrumController::saveSession(Preset preset)
 {
     std::ofstream session_file(main_session_file_path_);

@@ -397,6 +397,10 @@ void DrumView::drawMenuBar()
         {
             ImGui::MenuItem("Drum Packs", NULL, false, false); // Non-interactive header
             drawDrumPackSelectionMenu();
+
+            ImGui::MenuItem("Create New Kit", NULL, false, false); // Non-interactive header
+            // TODO: Selection Menu
+
             ImGui::EndMenu();
         }
 

@@ -13,6 +13,7 @@
 #include "drum_types.hpp"
 
 #include "presets.hpp"
+#include "drum_packs_manager.hpp"
 
 using namespace std::chrono_literals;
 
@@ -28,8 +29,12 @@ private:
     bool is_playing_;
     int bpm_;
     int beatCounter_;
+
     std::string drum_kit_assets_path_;
     std::string main_session_file_path_;
+
+    std::filesystem::path samples_root_dir_;
+    std::filesystem::path drum_packs_save_dir_;
 
     std::chrono::time_point<std::chrono::steady_clock> lastStep_;
 
