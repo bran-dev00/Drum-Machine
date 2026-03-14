@@ -30,11 +30,11 @@ private:
     int bpm_;
     int beatCounter_;
 
-    std::string drum_kit_assets_path_;
     std::string main_session_file_path_;
 
     std::filesystem::path samples_root_dir_;
     std::filesystem::path drum_packs_save_dir_;
+    DrumPackManager drum_pack_manager_;
 
     std::chrono::time_point<std::chrono::steady_clock> lastStep_;
 
@@ -44,8 +44,8 @@ private:
 
     std::array<float, NUM_TRACKS> track_volumes_;
 
-    std::vector<std::string> drum_packs_;
-    std::string curr_drum_pack_;
+    std::vector<DrumPack> drum_packs_;
+    int curr_drum_pack_index_ = -1;
 
     std::vector<Preset> presets_list_;
 
@@ -90,12 +90,12 @@ public:
     void loadSession();
 
     // Drum Packs
-    // re-scan assets directory for all the drum packs
+    // re-scan drum pack JSON directory for all the drum packs
     void scanDrumPacks();
     void setDrumPack(int index);
     std::string getCurrDrumPack();
     std::vector<std::string> getDrumPacks();
-    int getDrumPackIdx(std::string drum_pack_path);
+    int getDrumPackIdx(std::string drum_pack_name);
 
     // Presets
     void scanPresets();

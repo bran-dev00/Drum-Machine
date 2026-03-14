@@ -9,9 +9,6 @@ DrumController::DrumController()
     beatCounter_ = 0;
     bpm_ = 90;
 
-    drum_kit_assets_path_ = (std::filesystem::current_path() / L"assets" / L"samples").string();
-    curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"samples" / L"Kit-1").string();
-
     drum_packs_save_dir_ = (std::filesystem::current_path() / L"data" / L"drum-kits");
     samples_root_dir_ = (std::filesystem::current_path() / L"assets" / L"samples");
 
@@ -20,7 +17,7 @@ DrumController::DrumController()
     ma_engine_init(NULL, &engine_);
     ma_engine_set_volume(&engine_, .5f);
 
-    DrumPackManager drum_pack_manager = DrumPackManager(samples_root_dir_, drum_packs_save_dir_);
+    drum_pack_manager_ = DrumPackManager(samples_root_dir_, drum_packs_save_dir_);
 
     // first initialization
     sound_initialized_.fill(false);
@@ -83,25 +80,34 @@ void DrumController::loadSamples(const std::string sample_path)
 
 void DrumController::loadInitialSamples()
 {
-    std::string sample_path = (std::filesystem::current_path() / L"assets" / L"samples" / L"Kit-1").string();
-    loadSamples(sample_path);
+    if (drum_packs_.empty())
+    {
+        return;
+    }
+
+    curr_drum_pack_index_ = 0;
+    samples_paths_.clear();
+
+    const auto &pack = drum_packs_.at(0);
+    for (const auto &path : pack.samples)
+    {
+        if (!path.empty())
+        {
+            samples_paths_.push_back(path.string());
+        }
+    }
 }
 
 std::string DrumController::extractSampleName(std::string file_path)
 {
-    std::string output_str;
-    output_str = file_path.erase(0, file_path.find_last_of("\\") + 1);
-    output_str = output_str.erase(output_str.find_first_of("."));
-
-    return output_str;
+    std::filesystem::path p(file_path);
+    return p.stem().string();
 }
 
 std::string DrumController::extractDirName(std::string file_path)
 {
-    std::string output_str;
-    output_str = file_path.erase(0, file_path.find_last_of("\\") + 1);
-
-    return output_str;
+    std::filesystem::path p(file_path);
+    return p.filename().string();
 }
 
 void DrumController::initSoundArray()
@@ -267,22 +273,16 @@ std::array<float, NUM_TRACKS> DrumController::getTrackVolumes()
 
 void DrumController::scanDrumPacks()
 {
-    for (const auto &entry : std::filesystem::directory_iterator(drum_kit_assets_path_))
-    {
-        if (entry.is_directory())
-        {
-            drum_packs_.push_back(entry.path().string());
-        }
-    }
+    drum_packs_ = drum_pack_manager_.loadDrumPacks();
 }
 
-int DrumController::getDrumPackIdx(std::string drum_pack_path)
+int DrumController::getDrumPackIdx(std::string drum_pack_name)
 {
     for (size_t i = 0; i < drum_packs_.size(); i++)
     {
-        if (drum_packs_.at(i) == drum_pack_path)
+        if (drum_packs_.at(i).name == drum_pack_name)
         {
-            return i;
+            return static_cast<int>(i);
         }
     }
 
@@ -291,32 +291,56 @@ int DrumController::getDrumPackIdx(std::string drum_pack_path)
 
 void DrumController::setDrumPack(int index)
 {
-    if (index < 0 || index > drum_packs_.size())
+    if (index < 0 || index >= static_cast<int>(drum_packs_.size()))
     {
         std::cout << "drum_packs_ index out of bounds!\n";
         return;
     }
 
-    if (curr_drum_pack_ != drum_packs_.at(index))
+    if (curr_drum_pack_index_ == index)
     {
-        is_playing_ = false;
-        beatCounter_ = 0;
-        curr_drum_pack_ = drum_packs_.at(index);
-        loadSamples(curr_drum_pack_);
-        // update sounds here
-        initSequencer();
+        return;
     }
-    return;
+
+    is_playing_ = false;
+    beatCounter_ = 0;
+    curr_drum_pack_index_ = index;
+
+    samples_paths_.clear();
+    const auto &pack = drum_packs_.at(index);
+    for (const auto &path : pack.samples)
+    {
+        if (!path.empty())
+        {
+            samples_paths_.push_back(path.string());
+        }
+    }
+
+    // update sounds here
+    initSequencer();
 }
 
 std::string DrumController::getCurrDrumPack()
 {
-    return curr_drum_pack_;
+    if (curr_drum_pack_index_ < 0 || curr_drum_pack_index_ >= static_cast<int>(drum_packs_.size()))
+    {
+        return "";
+    }
+
+    return drum_packs_.at(curr_drum_pack_index_).name;
 }
 
 std::vector<std::string> DrumController::getDrumPacks()
 {
-    return drum_packs_;
+    std::vector<std::string> names;
+    names.reserve(drum_packs_.size());
+
+    for (const auto &pack : drum_packs_)
+    {
+        names.push_back(pack.name);
+    }
+
+    return names;
 }
 
 void DrumController::loadPreset(Preset preset)

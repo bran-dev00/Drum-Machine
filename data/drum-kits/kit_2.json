@@ -1,0 +1,15 @@
+{
+    "id": 2,
+    "name": "Kit-2",
+    "samples": [
+        "assets/samples/Kit-2/Kick.wav",
+        "assets/samples/Kit-2/Snare.wav",
+        "assets/samples/Kit-2/Closed-Hat.wav",
+        "assets/samples/Kit-2/Open-Hat.wav",
+        "assets/samples/Kit-2/Low-Tom.wav",
+        "assets/samples/Kit-2/Crash.wav",
+        "assets/samples/Kit-2/Clap.wav",
+        "assets/samples/Kit-2/Vocal.wav"
+    ]
+}
+
