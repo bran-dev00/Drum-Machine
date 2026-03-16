@@ -296,12 +296,129 @@ void DrumView::drawDrumPackSelectionMenu()
     }
 }
 
+void DrumView::drawDrumPackCreationMenu()
+{
+    if (ImGui::Selectable("Create New Drum Pack"))
+    {
+        std::cout << "pressed\n";
+    }
+}
+
+// callback function
+void DrumView::onFilesDropped(int count, const char **paths)
+{
+    // std::cout << "open_add_samples_modal: " << open_add_samples_modal_ << "\n";
+
+    // Only allow if the modal is open
+    if (open_add_samples_modal_ == false)
+    {
+        return;
+    }
+
+    files_dropped_buf.clear();
+
+    std::cout << "On Files Dropped Called Here: " << *paths << "\n";
+    for (int i = 0; i < count; i++)
+    {
+        std::filesystem::path p = std::filesystem::path(paths[i]);
+        if (p.has_extension())
+        {
+            auto extension = p.extension().string();
+            std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+            if (extension == ".wav" || extension == ".mp3")
+            {
+                files_dropped_buf.push_back(std::move(p));
+            }
+        }
+    }
+}
+
+void DrumView::drawAddSamplesModal()
+{
+
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("AddSamples", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("Drop Your Samples Here");
+
+        ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip("Double click the file to remove");
+        }
+
+        // TODO: Function to add / removed sample_file representation
+
+        for (auto &path : files_dropped_buf)
+        {
+            if (std::filesystem::exists(path))
+            {
+                files_accepted.push_back(std::move(path));
+            }
+        }
+
+        files_dropped_buf.clear();
+
+        // default size
+        ImVec2 list_box_size = ImVec2(0, 0);
+
+        if (files_accepted.size() > 0)
+        {
+            float padding_x = 15.0f;
+            ImVec2 file_path_text_size = ImGui::CalcTextSize(files_accepted.at(0).string().c_str());
+            list_box_size.x = file_path_text_size.x + padding_x;
+        }
+
+        if (ImGui::BeginListBox("##Dropped Samples", list_box_size))
+        {
+            // TODO:handle duplicates
+            for (const auto file_path : files_accepted)
+            {
+                ImGui::Selectable(file_path.string().c_str());
+            }
+
+            ImGui::EndListBox();
+        }
+
+        // TODO:copy files into samples directory
+        if (ImGui::Button("Submit"))
+        {
+            files_accepted.clear();
+            ImGui::CloseCurrentPopup();
+            open_add_samples_modal_ = false;
+            std::cout << "Submit Button Clicked\n";
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel"))
+        {
+            // clear the files
+            files_accepted.clear();
+            files_dropped_buf.clear();
+            ImGui::CloseCurrentPopup();
+            open_add_samples_modal_ = false;
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
 void DrumView::drawFileMenu()
 {
     Preset main_session = savedCurrentPreset("Main Session");
-    if (ImGui::Button("Save Session"))
+    if (ImGui::MenuItem("Save Session", NULL, false, true))
     {
         drum_controller_.saveSession(main_session);
+    }
+
+    if (ImGui::MenuItem("Add Samples", NULL, false, true))
+    {
+        open_add_samples_modal_ = true;
     }
 }
 
@@ -344,6 +461,7 @@ void DrumView::drawPresetsMenu()
     }
 }
 
+// Returns whatever the user currently has on screen as a preset
 Preset DrumView::savedCurrentPreset(std::string preset_name)
 {
     int bpm = drum_controller_.getBpm();
@@ -383,30 +501,30 @@ void DrumView::drawSavePresetPopup()
 void DrumView::drawMenuBar()
 {
     bool open_save_popup = false;
-    bool open_delete_menu = false;
+
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
         {
-            ImGui::MenuItem("File", NULL, false, false); // Non-interactive header
+            ImGui::MenuItem("File", NULL, false, false);
             drawFileMenu();
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Drum Packs"))
         {
-            ImGui::MenuItem("Drum Packs", NULL, false, false); // Non-interactive header
+            ImGui::MenuItem("Drum Packs", NULL, false, false);
             drawDrumPackSelectionMenu();
 
-            ImGui::MenuItem("Create New Kit", NULL, false, false); // Non-interactive header
-            // TODO: Selection Menu
+            ImGui::MenuItem("Create New Kit", NULL, false, false);
+            drawDrumPackCreationMenu();
 
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Presets"))
         {
-            ImGui::MenuItem("Presets", NULL, false, false); // Non-interactive header
+            ImGui::MenuItem("Presets", NULL, false, false);
             drawPresetsMenu();
             ImGui::NewLine();
             ImGui::Separator();
@@ -418,7 +536,7 @@ void DrumView::drawMenuBar()
 
             if (ImGui::BeginMenu("Remove Presets"))
             {
-                ImGui::MenuItem("Remove Presets", NULL, false, false); // Non-interactive header
+                ImGui::MenuItem("Remove Presets", NULL, false, false);
                 drawDeleteSubMenu();
                 ImGui::EndMenu();
             }
@@ -433,7 +551,14 @@ void DrumView::drawMenuBar()
         ImGui::OpenPopup("SavePresetPopup");
     }
 
+    if (open_add_samples_modal_)
+    {
+        ImGui::OpenPopup("AddSamples");
+        // open_add_samples_modal_ = false;
+    }
+
     drawSavePresetPopup();
+    drawAddSamplesModal();
 }
 
 void DrumView::drawMainContainer(float start_x, float width)

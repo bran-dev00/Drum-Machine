@@ -2,14 +2,14 @@
     "id": 1,
     "name": "Kit-1",
     "samples": [
-        "assets/samples/Kit-1/Kick.wav",
-        "assets/samples/Kit-1/Snare.wav",
-        "assets/samples/Kit-1/Closed-Hat.wav",
-        "assets/samples/Kit-1/Open-Hat.wav",
-        "assets/samples/Kit-1/Low-Tom.wav",
-        "assets/samples/Kit-1/Crash.wav",
         "assets/samples/Kit-1/Blip.wav",
-        "assets/samples/Kit-1/Clap.wav"
+        "assets/samples/Kit-1/Clap.wav",
+        "assets/samples/Kit-1/Crash.wav",
+        "assets/samples/Kit-1/Open-Hat.wav",
+        "assets/samples/Kit-1/Closed-Hat.wav",
+        "assets/samples/Kit-1/Low-Tom.wav",
+        "assets/samples/Kit-1/Snare.wav",
+        "assets/samples/Kit-1/Kick.wav"
     ]
 }
 

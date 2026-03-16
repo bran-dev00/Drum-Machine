@@ -24,6 +24,14 @@ private:
     ImGuiIO &io = ImGui::GetIO();
     const ImVec2 base_resolution_ = ImVec2(1920.0f, 1080.0f);
 
+    bool open_add_samples_modal_ = false;
+
+    // Buffer
+    std::vector<std::filesystem::path> files_dropped_buf;
+
+    // Used for rendering
+    std::vector<std::filesystem::path> files_accepted;
+
     float getScaleFactor() const
     {
         return io.DisplaySize.x / base_resolution_.x;
@@ -51,6 +59,11 @@ public:
     void drawCustomVolumeSlider(const std::string label, int track_idx, float &value, float v_min, float v_max);
 
     void drawDrumPackSelectionMenu();
+    void drawDrumPackCreationMenu();
+
+    void onFilesDropped(int count, const char **paths);
+    void drawAddSamplesModal();
+
     void drawFileMenu();
     Preset savedCurrentPreset(std::string preset_name);
     void drawSavePresetPopup();
