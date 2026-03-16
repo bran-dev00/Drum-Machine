@@ -372,12 +372,29 @@ void DrumView::drawAddSamplesModal()
             list_box_size.x = max_text_width + padding_x;
         }
 
-        // TODO: Function to removed sample_file representation
         if (ImGui::BeginListBox("##Dropped Samples", list_box_size))
         {
-            for (const auto file_path : files_accepted)
+            // set iterator to the end of the set
+            std::set<std::filesystem::path>::iterator to_erase = files_accepted.end();
+
+            int idx = 0;
+            // iterate through the set and increment the iterator, and index
+            for (auto it = files_accepted.begin(); it != files_accepted.end(); ++it, ++idx)
             {
-                ImGui::Selectable(file_path.string().c_str());
+                const std::filesystem::path &file_path = *it;
+
+                if (ImGui::Selectable(file_path.string().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+                {
+                    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                    {
+                        to_erase = it;
+                    }
+                }
+            }
+
+            if (to_erase != files_accepted.end())
+            {
+                files_accepted.erase(to_erase);
             }
 
             ImGui::EndListBox();
@@ -394,7 +411,6 @@ void DrumView::drawAddSamplesModal()
         ImGui::SameLine();
         if (ImGui::Button("Cancel"))
         {
-            // clear the files
             files_accepted.clear();
             files_dropped_buf.clear();
             ImGui::CloseCurrentPopup();
