@@ -73,7 +73,6 @@ int main(int argc, char const *argv[])
         auto *view = static_cast<DrumView *>(glfwGetWindowUserPointer(window));
         if (view)
         {
-            std::cout << "lamda callback\n";
             view->onFilesDropped(count, paths);
         } });
 

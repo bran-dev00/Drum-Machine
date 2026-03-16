@@ -307,7 +307,6 @@ void DrumView::drawDrumPackCreationMenu()
 // callback function
 void DrumView::onFilesDropped(int count, const char **paths)
 {
-    // std::cout << "open_add_samples_modal: " << open_add_samples_modal_ << "\n";
 
     // Only allow if the modal is open
     if (open_add_samples_modal_ == false)
@@ -317,7 +316,6 @@ void DrumView::onFilesDropped(int count, const char **paths)
 
     files_dropped_buf.clear();
 
-    std::cout << "On Files Dropped Called Here: " << *paths << "\n";
     for (int i = 0; i < count; i++)
     {
         std::filesystem::path p = std::filesystem::path(paths[i]);
@@ -326,6 +324,7 @@ void DrumView::onFilesDropped(int count, const char **paths)
             auto extension = p.extension().string();
             std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
+            // TODO:Test .wav,mp3,mp4,ogg
             if (extension == ".wav" || extension == ".mp3")
             {
                 files_dropped_buf.push_back(std::move(p));
@@ -352,31 +351,30 @@ void DrumView::drawAddSamplesModal()
             ImGui::SetTooltip("Double click the file to remove");
         }
 
-        // TODO: Function to add / removed sample_file representation
-
+        ImVec2 list_box_size = ImVec2(0, 0);
+        static float max_text_width = 0.0f;
         for (auto &path : files_dropped_buf)
         {
             if (std::filesystem::exists(path))
             {
-                files_accepted.push_back(std::move(path));
+                float w = ImGui::CalcTextSize(path.string().c_str()).x;
+
+                max_text_width = std::max(max_text_width, w);
+                files_accepted.insert(std::move(path));
             }
         }
 
         files_dropped_buf.clear();
 
-        // default size
-        ImVec2 list_box_size = ImVec2(0, 0);
-
         if (files_accepted.size() > 0)
         {
             float padding_x = 15.0f;
-            ImVec2 file_path_text_size = ImGui::CalcTextSize(files_accepted.at(0).string().c_str());
-            list_box_size.x = file_path_text_size.x + padding_x;
+            list_box_size.x = max_text_width + padding_x;
         }
 
+        // TODO: Function to removed sample_file representation
         if (ImGui::BeginListBox("##Dropped Samples", list_box_size))
         {
-            // TODO:handle duplicates
             for (const auto file_path : files_accepted)
             {
                 ImGui::Selectable(file_path.string().c_str());
@@ -385,13 +383,12 @@ void DrumView::drawAddSamplesModal()
             ImGui::EndListBox();
         }
 
-        // TODO:copy files into samples directory
         if (ImGui::Button("Submit"))
         {
+            drum_controller_.copySamples(files_accepted);
             files_accepted.clear();
             ImGui::CloseCurrentPopup();
             open_add_samples_modal_ = false;
-            std::cout << "Submit Button Clicked\n";
         }
 
         ImGui::SameLine();

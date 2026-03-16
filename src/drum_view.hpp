@@ -8,6 +8,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <set>
 #include <iostream>
 
 #define SCR_SM 800
@@ -29,8 +30,8 @@ private:
     // Buffer
     std::vector<std::filesystem::path> files_dropped_buf;
 
-    // Used for rendering
-    std::vector<std::filesystem::path> files_accepted;
+    // Used for rendering, no duplicates
+    std::set<std::filesystem::path> files_accepted;
 
     float getScaleFactor() const
     {

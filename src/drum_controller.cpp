@@ -98,6 +98,48 @@ void DrumController::loadInitialSamples()
     }
 }
 
+void DrumController::copySamples(std::set<std::filesystem::path> file_paths)
+{
+    std::vector<std::string> successful;
+    std::vector<std::pair<std::string, std::string>> errors;
+
+    for (const auto &path : file_paths)
+    {
+        // target directory
+        auto dest_path = samples_root_dir_ / path.filename();
+        std::cout << "dest_path" << dest_path << "\n";
+
+        std::error_code ec;
+
+        // TODO: Ask if user wants to replace or skip
+        if (std::filesystem::exists(dest_path, ec))
+        {
+            errors.emplace_back(path.string(), "already exists");
+            continue;
+        }
+
+        std::filesystem::copy_file(path, dest_path, ec);
+
+        if (!ec)
+        {
+            successful.push_back(dest_path.string());
+        }
+        else
+        {
+            errors.emplace_back(path.string(), ec.message());
+        }
+    }
+
+    // TODO: Success & Error UI
+
+    if (!errors.empty())
+    {
+        std::cout << "Errors:\n";
+        for (const auto &[file, msg] : errors)
+            std::cout << file << "( " << msg << " )\n";
+    }
+}
+
 std::string DrumController::extractSampleName(std::string file_path)
 {
     std::filesystem::path p(file_path);

@@ -4,6 +4,7 @@
 #include <chrono>
 #include <string>
 #include <array>
+#include <set>
 #include <vector>
 #include <utility>
 #include <fstream>
@@ -60,8 +61,10 @@ public:
     void initSequencer();
     void initSoundArray();
     Preset initBlankPreset();
+
     void loadInitialSamples();
     void loadSamples(const std::string sample_path);
+    void copySamples(const std::set<std::filesystem::path> file_paths);
 
     void setSequencerNoteTrue(Track_t &track, int index);
     void setSequencerNoteFalse(Track_t &track, int index);
