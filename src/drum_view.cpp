@@ -1,5 +1,8 @@
 #include "drum_view.hpp"
 #include <imgui_internal.h>
+#include <cstring>
+
+char DrumView::rename_input_buffer_[256];
 
 DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
 {
@@ -9,10 +12,12 @@ DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
 
     // Scale
     float scale = getScaleFactor();
-    float font_size = std::clamp(16.0f * scale, 16.0f, 32.0f); // Clamp font size between 12 and 24
+    float font_size = std::clamp(16.0f * scale, 16.0f, 32.0f);
 
     std::string lexend_font = (std::filesystem::current_path() / L"fonts" / L"Lexend-Medium.ttf").string();
     io.Fonts->AddFontFromFileTTF(lexend_font.c_str(), font_size);
+
+    memset(rename_input_buffer_, 0, sizeof(rename_input_buffer_));
 }
 
 DrumView::~DrumView() = default;
@@ -333,6 +338,155 @@ void DrumView::onFilesDropped(int count, const char **paths)
     }
 }
 
+void DrumView::drawCopyConflictModal()
+{
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("CopyConflict", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        std::string conflict_name = drum_controller_.getCurrentConflictFilename();
+        ImGui::Text("File \"%s\" already exists.", conflict_name.c_str());
+        ImGui::Spacing();
+
+        ImGui::Text("Rename to:");
+        ImGui::SameLine();
+
+        std::string current_name = drum_controller_.getCurrentConflictFilename();
+        std::string stem;
+        if (!current_name.empty())
+        {
+            std::filesystem::path p(current_name);
+            stem = p.stem().string();
+        }
+
+        // empty string
+        if (rename_input_buffer_[0] == '\0')
+        {
+            strncpy(rename_input_buffer_, stem.c_str(), sizeof(rename_input_buffer_) - 1);
+            rename_input_buffer_[sizeof(rename_input_buffer_) - 1] = '\0';
+        }
+
+        ImGui::InputText("##RenameInput", rename_input_buffer_, sizeof(rename_input_buffer_));
+
+        ImGui::Spacing();
+
+        if (ImGui::Button("Skip"))
+        {
+            drum_controller_.skipCurrentFile();
+            // clear buffer
+            memset(rename_input_buffer_, 0, sizeof(rename_input_buffer_));
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+
+        bool can_rename = strlen(rename_input_buffer_) > 0;
+
+        // don't allow empty sample name
+        ImGui::BeginDisabled(!can_rename);
+        if (ImGui::Button("Rename"))
+        {
+            drum_controller_.renameAndCopyCurrentFile(std::string(rename_input_buffer_));
+            memset(rename_input_buffer_, 0, sizeof(rename_input_buffer_));
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndDisabled();
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Skip All"))
+        {
+            drum_controller_.finishCopy();
+            // clear buffer
+            memset(rename_input_buffer_, 0, sizeof(rename_input_buffer_));
+
+            open_copy_progress_modal_ = false;
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+// TODO: Fix sizing and proper overlap
+void DrumView::drawCopyProgressModal()
+{
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    float y_offset = 100.0f;
+    ImGui::SetNextWindowPos(ImVec2(center.x, center.y + y_offset), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("CopyProgress", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        bool has_conflict = drum_controller_.hasCopyConflict();
+        std::string copying_file = drum_controller_.getCurrentCopyingFilename();
+
+        if (has_conflict)
+        {
+            ImGui::OpenPopup("CopyConflict");
+            drawCopyConflictModal();
+        }
+        else
+        {
+            int remaining = drum_controller_.getCopyQueueRemaining();
+            ImGui::Text("Copying: %s", copying_file.c_str());
+            ImGui::Spacing();
+
+            ImGui::Text("%d files remaining", remaining);
+            ImGui::Spacing();
+
+            if (ImGui::Button("Cancel"))
+            {
+                drum_controller_.finishCopy();
+                open_copy_progress_modal_ = false;
+                ImGui::CloseCurrentPopup();
+            }
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+void DrumView::drawCopyCompletionModal()
+{
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("CopyCompletion", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        auto successful = drum_controller_.getSuccessfulCopies();
+        auto errors = drum_controller_.getCopyErrors();
+
+        ImGui::Text("Copy Complete!");
+        ImGui::Spacing();
+
+        ImGui::Text("Successfully copied: %zu file(s)", successful.size());
+
+        if (!errors.empty())
+        {
+            ImGui::Text("Errors: %zu", errors.size());
+            for (const auto &[file, msg] : errors)
+            {
+                ImGui::BulletText("%s: %s", file.c_str(), msg.c_str());
+            }
+        }
+
+        ImGui::Spacing();
+
+        if (ImGui::Button("Done"))
+        {
+            open_copy_completion_modal_ = false;
+            open_copy_progress_modal_ = false;
+            open_add_samples_modal_ = false;
+
+            drum_controller_.finishCopy();
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
 void DrumView::drawAddSamplesModal()
 {
 
@@ -359,7 +513,7 @@ void DrumView::drawAddSamplesModal()
             {
                 float w = ImGui::CalcTextSize(path.string().c_str()).x;
 
-                max_text_width = std::max(max_text_width, w);
+                max_text_width = (std::max)(max_text_width, w);
                 files_accepted.insert(std::move(path));
             }
         }
@@ -372,13 +526,12 @@ void DrumView::drawAddSamplesModal()
             list_box_size.x = max_text_width + padding_x;
         }
 
+        // TODO:Extract Later?
         if (ImGui::BeginListBox("##Dropped Samples", list_box_size))
         {
-            // set iterator to the end of the set
             std::set<std::filesystem::path>::iterator to_erase = files_accepted.end();
 
             int idx = 0;
-            // iterate through the set and increment the iterator, and index
             for (auto it = files_accepted.begin(); it != files_accepted.end(); ++it, ++idx)
             {
                 const std::filesystem::path &file_path = *it;
@@ -400,15 +553,19 @@ void DrumView::drawAddSamplesModal()
             ImGui::EndListBox();
         }
 
+        ImGui::BeginDisabled(files_accepted.empty());
         if (ImGui::Button("Submit"))
         {
-            drum_controller_.copySamples(files_accepted);
+            drum_controller_.startCopyQueue(files_accepted);
             files_accepted.clear();
-            ImGui::CloseCurrentPopup();
             open_add_samples_modal_ = false;
+            open_copy_progress_modal_ = true;
+            ImGui::CloseCurrentPopup();
         }
+        ImGui::EndDisabled();
 
         ImGui::SameLine();
+
         if (ImGui::Button("Cancel"))
         {
             files_accepted.clear();
@@ -567,11 +724,39 @@ void DrumView::drawMenuBar()
     if (open_add_samples_modal_)
     {
         ImGui::OpenPopup("AddSamples");
-        // open_add_samples_modal_ = false;
+    }
+
+    if (open_copy_progress_modal_)
+    {
+        ImGui::OpenPopup("CopyProgress");
+    }
+
+    if (open_copy_completion_modal_)
+    {
+        ImGui::OpenPopup("CopyCompletion");
     }
 
     drawSavePresetPopup();
     drawAddSamplesModal();
+
+    drawCopyProgressModal();
+    drawCopyConflictModal();
+    drawCopyCompletionModal();
+
+    if (drum_controller_.isCopyingInProgress())
+    {
+        drum_controller_.processNextCopy();
+    }
+
+    if (drum_controller_.getCopyQueueRemaining() == 0 && !drum_controller_.hasCopyConflict())
+    {
+        if (open_copy_progress_modal_)
+        {
+            drum_controller_.finishCopy();
+            open_copy_progress_modal_ = false;
+            open_copy_completion_modal_ = true;
+        }
+    }
 }
 
 void DrumView::drawMainContainer(float start_x, float width)

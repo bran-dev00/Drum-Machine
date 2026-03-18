@@ -26,6 +26,10 @@ private:
     const ImVec2 base_resolution_ = ImVec2(1920.0f, 1080.0f);
 
     bool open_add_samples_modal_ = false;
+    bool open_copy_progress_modal_ = false;
+    bool open_copy_completion_modal_ = false;
+
+    static char rename_input_buffer_[256];
 
     // Buffer
     std::vector<std::filesystem::path> files_dropped_buf;
@@ -64,6 +68,10 @@ public:
 
     void onFilesDropped(int count, const char **paths);
     void drawAddSamplesModal();
+
+    void drawCopyConflictModal();
+    void drawCopyProgressModal();
+    void drawCopyCompletionModal();
 
     void drawFileMenu();
     Preset savedCurrentPreset(std::string preset_name);

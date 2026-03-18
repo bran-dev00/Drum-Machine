@@ -19,6 +19,9 @@ DrumController::DrumController()
 
     drum_pack_manager_ = DrumPackManager(samples_root_dir_, drum_packs_save_dir_);
 
+    is_copying_in_progress_ = false;
+    has_conflict_ = false;
+
     // first initialization
     sound_initialized_.fill(false);
     scanDrumPacks();
@@ -98,48 +101,184 @@ void DrumController::loadInitialSamples()
     }
 }
 
-void DrumController::copySamples(std::set<std::filesystem::path> file_paths)
+// Copy Conflict Handling
+
+void DrumController::startCopyQueue(std::set<std::filesystem::path> file_paths)
 {
-    std::vector<std::string> successful;
-    std::vector<std::pair<std::string, std::string>> errors;
+    successful_copies_.clear();
+    copy_errors_.clear();
+    has_conflict_ = false;
+    is_copying_in_progress_ = true;
+
+    // Clear the Queue if not already empty
+    while (!copy_queue_.empty())
+    {
+        copy_queue_.pop();
+    }
 
     for (const auto &path : file_paths)
     {
-        // target directory
-        auto dest_path = samples_root_dir_ / path.filename();
-        std::cout << "dest_path" << dest_path << "\n";
-
-        std::error_code ec;
-
-        // TODO: Ask if user wants to replace or skip
-        if (std::filesystem::exists(dest_path, ec))
-        {
-            errors.emplace_back(path.string(), "already exists");
-            continue;
-        }
-
-        std::filesystem::copy_file(path, dest_path, ec);
-
-        if (!ec)
-        {
-            successful.push_back(dest_path.string());
-        }
-        else
-        {
-            errors.emplace_back(path.string(), ec.message());
-        }
+        copy_queue_.push(path);
     }
 
-    // TODO: Success & Error UI
-
-    if (!errors.empty())
-    {
-        std::cout << "Errors:\n";
-        for (const auto &[file, msg] : errors)
-            std::cout << file << "( " << msg << " )\n";
-    }
+    processNextCopy();
 }
 
+void DrumController::processNextCopy()
+{
+    if (copy_queue_.empty())
+    {
+        is_copying_in_progress_ = false;
+        return;
+    }
+
+    current_copying_file_ = copy_queue_.front();
+    current_conflict_file_.clear();
+    has_conflict_ = false;
+
+    auto dest_path = samples_root_dir_ / current_copying_file_.filename();
+
+    std::error_code ec;
+
+    // File already Exists mark it as conflict path
+    if (std::filesystem::exists(dest_path, ec))
+    {
+        current_conflict_file_ = dest_path;
+        has_conflict_ = true;
+        return;
+    }
+
+    std::filesystem::copy_file(current_copying_file_, dest_path, ec);
+
+    if (!ec)
+    {
+        successful_copies_.push_back(dest_path.string());
+    }
+    else
+    {
+        copy_errors_.emplace_back(current_copying_file_.string(), ec.message());
+    }
+
+    copy_queue_.pop();
+    processNextCopy();
+}
+
+void DrumController::skipCurrentFile()
+{
+    if (!copy_queue_.empty())
+    {
+        copy_queue_.pop();
+    }
+
+    has_conflict_ = false;
+    current_conflict_file_.clear();
+    processNextCopy();
+}
+
+void DrumController::renameAndCopyCurrentFile(std::string new_name)
+{
+    if (copy_queue_.empty())
+    {
+        return;
+    }
+
+    if (new_name.empty())
+    {
+        copy_errors_.emplace_back(current_copying_file_.string(), "Empty filename");
+        copy_queue_.pop();
+        processNextCopy();
+        return;
+    }
+
+    std::filesystem::path new_path = samples_root_dir_ / (new_name + current_copying_file_.extension().string());
+
+    if (willConflict(new_path))
+    {
+        copy_errors_.emplace_back(current_copying_file_.string(), "Renamed file also conflicts");
+        copy_queue_.pop();
+        processNextCopy();
+        return;
+    }
+
+    std::error_code ec;
+    std::filesystem::copy_file(current_copying_file_, new_path, ec);
+
+    if (!ec)
+    {
+        successful_copies_.push_back(new_path.string());
+    }
+    else
+    {
+        copy_errors_.emplace_back(current_copying_file_.string(), ec.message());
+    }
+
+    copy_queue_.pop();
+    has_conflict_ = false;
+    current_conflict_file_.clear();
+    processNextCopy();
+}
+
+// Checks to see if there is already a file with the same name in the samples_dir or wherever the destination path is.
+bool DrumController::willConflict(const std::filesystem::path &dest_path)
+{
+    std::error_code ec;
+    return std::filesystem::exists(dest_path, ec);
+}
+
+void DrumController::finishCopy()
+{
+    is_copying_in_progress_ = false;
+    has_conflict_ = false;
+    current_copying_file_.clear();
+    current_conflict_file_.clear();
+
+    while (!copy_queue_.empty())
+    {
+        copy_queue_.pop();
+    }
+
+    scanDrumPacks();
+    loadInitialSamples();
+    initSequencer();
+}
+
+// For UI Rendering
+std::string DrumController::getCurrentCopyingFilename()
+{
+    return current_copying_file_.filename().string();
+}
+
+std::string DrumController::getCurrentConflictFilename()
+{
+    return current_conflict_file_.filename().string();
+}
+
+bool DrumController::hasCopyConflict()
+{
+    return has_conflict_;
+}
+
+bool DrumController::isCopyingInProgress()
+{
+    return is_copying_in_progress_;
+}
+
+std::vector<std::string> DrumController::getSuccessfulCopies()
+{
+    return successful_copies_;
+}
+
+std::vector<std::pair<std::string, std::string>> DrumController::getCopyErrors()
+{
+    return copy_errors_;
+}
+
+int DrumController::getCopyQueueRemaining()
+{
+    return static_cast<int>(copy_queue_.size());
+}
+
+// Helper Functions
 std::string DrumController::extractSampleName(std::string file_path)
 {
     std::filesystem::path p(file_path);

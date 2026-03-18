@@ -8,6 +8,8 @@
 #include <vector>
 #include <utility>
 #include <fstream>
+#include <queue>
+#include <regex>
 
 #include "../external/miniaudio/miniaudio.h"
 #include "drum_track_model.hpp"
@@ -54,6 +56,19 @@ private:
 
     float volume_;
 
+    // files to be copied
+    std::queue<std::filesystem::path> copy_queue_;
+    std::vector<std::string> successful_copies_;
+    std::vector<std::pair<std::string, std::string>> copy_errors_;
+
+    std::filesystem::path current_copying_file_;
+    std::filesystem::path current_conflict_file_;
+
+    bool is_copying_in_progress_;
+    bool has_conflict_;
+
+    bool willConflict(const std::filesystem::path &dest_path);
+
 public:
     DrumController();
     ~DrumController();
@@ -64,7 +79,22 @@ public:
 
     void loadInitialSamples();
     void loadSamples(const std::string sample_path);
-    void copySamples(const std::set<std::filesystem::path> file_paths);
+
+    void startCopyQueue(std::set<std::filesystem::path> file_paths);
+    void processNextCopy();
+    void skipCurrentFile();
+    void renameAndCopyCurrentFile(std::string new_name);
+    void finishCopy();
+
+    std::string getCurrentCopyingFilename();
+    std::string getCurrentConflictFilename();
+
+    // For UI Rendering
+    bool hasCopyConflict();
+    bool isCopyingInProgress();
+    std::vector<std::string> getSuccessfulCopies();
+    std::vector<std::pair<std::string, std::string>> getCopyErrors();
+    int getCopyQueueRemaining();
 
     void setSequencerNoteTrue(Track_t &track, int index);
     void setSequencerNoteFalse(Track_t &track, int index);
