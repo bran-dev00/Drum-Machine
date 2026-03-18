@@ -409,11 +409,13 @@ void DrumView::drawCopyConflictModal()
     }
 }
 
-// TODO: Fix sizing and proper overlap
 void DrumView::drawCopyProgressModal()
 {
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImVec2 avail = ImGui::GetContentRegionAvail();
     float y_offset = 100.0f;
+
+    ImGui::SetNextWindowSize(ImVec2(avail.x / 2, avail.y / 4));
     ImGui::SetNextWindowPos(ImVec2(center.x, center.y + y_offset), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
     if (ImGui::BeginPopupModal("CopyProgress", NULL, ImGuiWindowFlags_AlwaysAutoResize))
@@ -421,26 +423,24 @@ void DrumView::drawCopyProgressModal()
         bool has_conflict = drum_controller_.hasCopyConflict();
         std::string copying_file = drum_controller_.getCurrentCopyingFilename();
 
+        int remaining = drum_controller_.getCopyQueueRemaining();
+        ImGui::Text("Copying: %s", copying_file.c_str());
+        ImGui::Spacing();
+
+        ImGui::Text("%d files remaining", remaining);
+        ImGui::Spacing();
+
+        if (ImGui::Button("Cancel"))
+        {
+            drum_controller_.finishCopy();
+            open_copy_progress_modal_ = false;
+            ImGui::CloseCurrentPopup();
+        }
+
         if (has_conflict)
         {
             ImGui::OpenPopup("CopyConflict");
             drawCopyConflictModal();
-        }
-        else
-        {
-            int remaining = drum_controller_.getCopyQueueRemaining();
-            ImGui::Text("Copying: %s", copying_file.c_str());
-            ImGui::Spacing();
-
-            ImGui::Text("%d files remaining", remaining);
-            ImGui::Spacing();
-
-            if (ImGui::Button("Cancel"))
-            {
-                drum_controller_.finishCopy();
-                open_copy_progress_modal_ = false;
-                ImGui::CloseCurrentPopup();
-            }
         }
 
         ImGui::EndPopup();
