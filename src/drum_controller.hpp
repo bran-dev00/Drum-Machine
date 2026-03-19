@@ -82,6 +82,8 @@ public:
 
     void startCopyQueue(std::set<std::filesystem::path> file_paths);
     void processNextCopy();
+
+    void replaceCurrentFile();
     void skipCurrentFile();
     void renameAndCopyCurrentFile(std::string new_name);
     void finishCopy();

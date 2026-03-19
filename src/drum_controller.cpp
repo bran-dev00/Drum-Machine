@@ -163,6 +163,48 @@ void DrumController::processNextCopy()
     processNextCopy();
 }
 
+void DrumController::replaceCurrentFile()
+{
+    if (copy_queue_.empty())
+    {
+        return;
+    }
+
+    auto dest_path = samples_root_dir_ / current_copying_file_.filename();
+    std::error_code ec;
+
+    // Delete the file, because file is locked
+    if (std::filesystem::exists(dest_path, ec))
+    {
+        std::filesystem::remove(dest_path, ec);
+        if (ec)
+        {
+            copy_errors_.emplace_back(current_copying_file_.string(), "Failed to remove existing file: " + ec.message());
+            has_conflict_ = false;
+            current_conflict_file_.clear();
+            copy_queue_.pop();
+            processNextCopy();
+            return;
+        }
+    }
+
+    std::filesystem::copy_file(current_copying_file_, dest_path, ec);
+
+    if (!ec)
+    {
+        successful_copies_.push_back(dest_path.string());
+    }
+    else
+    {
+        copy_errors_.emplace_back(current_copying_file_.string(), ec.message());
+    }
+
+    has_conflict_ = false;
+    current_conflict_file_.clear();
+    copy_queue_.pop();
+    processNextCopy();
+}
+
 void DrumController::skipCurrentFile()
 {
     if (!copy_queue_.empty())

@@ -395,6 +395,14 @@ void DrumView::drawCopyConflictModal()
 
         ImGui::SameLine();
 
+        if (ImGui::Button("Replace"))
+        {
+            drum_controller_.replaceCurrentFile();
+            // clear buffer
+            memset(rename_input_buffer_, 0, sizeof(rename_input_buffer_));
+            ImGui::CloseCurrentPopup();
+        }
+
         if (ImGui::Button("Skip All"))
         {
             drum_controller_.finishCopy();
