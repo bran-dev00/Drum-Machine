@@ -1,5 +1,6 @@
 #pragma once
 #include "drum_controller.hpp"
+#include "utils.hpp"
 #include "presets.hpp"
 #include <filesystem>
 #include "imgui.h"
@@ -32,10 +33,10 @@ private:
     static char rename_input_buffer_[256];
 
     // Buffer
-    std::vector<std::filesystem::path> files_dropped_buf;
+    std::vector<path_pair_t> files_dropped_buf;
 
     // Used for rendering, no duplicates
-    std::set<std::filesystem::path> files_accepted;
+    std::set<path_pair_t> files_accepted_;
 
     float getScaleFactor() const
     {

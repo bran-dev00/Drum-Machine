@@ -9,11 +9,11 @@
 #include <utility>
 #include <fstream>
 #include <queue>
-#include <regex>
 
 #include "../external/miniaudio/miniaudio.h"
 #include "drum_track_model.hpp"
 #include "drum_types.hpp"
+#include "utils.hpp"
 
 #include "presets.hpp"
 #include "drum_packs_manager.hpp"
@@ -57,11 +57,11 @@ private:
     float volume_;
 
     // files to be copied
-    std::queue<std::filesystem::path> copy_queue_;
+    std::queue<path_pair_t> copy_queue_;
     std::vector<std::string> successful_copies_;
     std::vector<std::pair<std::string, std::string>> copy_errors_;
 
-    std::filesystem::path current_copying_file_;
+    path_pair_t current_copying_file_;
     std::filesystem::path current_conflict_file_;
 
     bool is_copying_in_progress_;
@@ -80,7 +80,7 @@ public:
     void loadInitialSamples();
     void loadSamples(const std::string sample_path);
 
-    void startCopyQueue(std::set<std::filesystem::path> file_paths);
+    void startCopyQueue(std::set<path_pair_t> file_paths);
     void processNextCopy();
 
     void replaceCurrentFile();
@@ -104,11 +104,6 @@ public:
     void updateTracks(std::array<Track_t, NUM_TRACKS> tracks);
     void resetSequencer(Track_t &track);
     void resetAllTracks();
-
-    std::string extractSampleName(std::string file_path);
-    std::string extractDirName(std::string file_path);
-
-    std::array<bool, MAX_STEPS> &getSequencerArray();
 
     std::array<DrumTrackModel, NUM_TRACKS> &getTracks();
     DrumTrackModel &getTrackByIndex(int index);

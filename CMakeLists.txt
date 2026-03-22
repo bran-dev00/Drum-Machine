@@ -40,6 +40,7 @@ add_library(drum_controller STATIC
     src/presets.cpp
     src/drum_packs_manager.cpp
     src/drum_pack.cpp
+    src/utils.cpp
 )
 target_include_directories(drum_controller PUBLIC ${CMAKE_SOURCE_DIR}/src)
 

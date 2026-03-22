@@ -279,13 +279,13 @@ void DrumView::drawControls(float start_x)
 
 void DrumView::drawDrumPackSelectionMenu()
 {
-    std::string curr_drum_pack = drum_controller_.extractDirName(drum_controller_.getCurrDrumPack());
+    std::string curr_drum_pack = PathUtils::extractDirName(drum_controller_.getCurrDrumPack());
     std::vector<std::string> drum_packs = drum_controller_.getDrumPacks();
 
     // extract drum pack names
     for (size_t i = 0; i < drum_packs.size(); i++)
     {
-        std::string d_name = drum_controller_.extractDirName(drum_packs.at(i));
+        std::string d_name = PathUtils::extractDirName(drum_packs.at(i));
         drum_packs.at(i) = d_name;
     }
 
@@ -324,15 +324,21 @@ void DrumView::onFilesDropped(int count, const char **paths)
     for (int i = 0; i < count; i++)
     {
         std::filesystem::path p = std::filesystem::path(paths[i]);
-        if (p.has_extension())
-        {
-            auto extension = p.extension().string();
-            std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
-            // TODO:Test .wav,mp3,mp4,ogg
-            if (extension == ".wav" || extension == ".mp3")
+        if (std::filesystem::is_directory(p))
+        {
+            auto files_with_paths = FileValidation::getFilesWithRelativePaths(p);
+            for (auto &file : files_with_paths)
             {
-                files_dropped_buf.push_back(std::move(p));
+                files_dropped_buf.push_back(std::move(file));
+            }
+        }
+        else
+        {
+            auto validated_files = FileValidation::validateFile(p);
+            for (auto &file : validated_files)
+            {
+                files_dropped_buf.push_back({file, file.filename()});
             }
         }
     }
@@ -515,20 +521,21 @@ void DrumView::drawAddSamplesModal()
 
         ImVec2 list_box_size = ImVec2(0, 0);
         static float max_text_width = 0.0f;
-        for (auto &path : files_dropped_buf)
+
+        for (auto &file : files_dropped_buf)
         {
-            if (std::filesystem::exists(path))
+            if (std::filesystem::exists(file.first))
             {
-                float w = ImGui::CalcTextSize(path.string().c_str()).x;
+                float w = ImGui::CalcTextSize(file.first.string().c_str()).x;
 
                 max_text_width = (std::max)(max_text_width, w);
-                files_accepted.insert(std::move(path));
+                files_accepted_.insert(std::move(file));
             }
         }
 
         files_dropped_buf.clear();
 
-        if (files_accepted.size() > 0)
+        if (files_accepted_.size() > 0)
         {
             float padding_x = 15.0f;
             list_box_size.x = max_text_width + padding_x;
@@ -537,14 +544,14 @@ void DrumView::drawAddSamplesModal()
         // TODO:Extract Later?
         if (ImGui::BeginListBox("##Dropped Samples", list_box_size))
         {
-            std::set<std::filesystem::path>::iterator to_erase = files_accepted.end();
+            std::set<path_pair_t>::iterator to_erase = files_accepted_.end();
 
             int idx = 0;
-            for (auto it = files_accepted.begin(); it != files_accepted.end(); ++it, ++idx)
+            for (auto it = files_accepted_.begin(); it != files_accepted_.end(); ++it, ++idx)
             {
-                const std::filesystem::path &file_path = *it;
+                const auto &file = *it;
 
-                if (ImGui::Selectable(file_path.string().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+                if (ImGui::Selectable(file.first.string().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
                 {
                     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                     {
@@ -553,19 +560,19 @@ void DrumView::drawAddSamplesModal()
                 }
             }
 
-            if (to_erase != files_accepted.end())
+            if (to_erase != files_accepted_.end())
             {
-                files_accepted.erase(to_erase);
+                files_accepted_.erase(to_erase);
             }
 
             ImGui::EndListBox();
         }
 
-        ImGui::BeginDisabled(files_accepted.empty());
+        ImGui::BeginDisabled(files_accepted_.empty());
         if (ImGui::Button("Submit"))
         {
-            drum_controller_.startCopyQueue(files_accepted);
-            files_accepted.clear();
+            drum_controller_.startCopyQueue(files_accepted_);
+            files_accepted_.clear();
             open_add_samples_modal_ = false;
             open_copy_progress_modal_ = true;
             ImGui::CloseCurrentPopup();
@@ -576,7 +583,7 @@ void DrumView::drawAddSamplesModal()
 
         if (ImGui::Button("Cancel"))
         {
-            files_accepted.clear();
+            files_accepted_.clear();
             files_dropped_buf.clear();
             ImGui::CloseCurrentPopup();
             open_add_samples_modal_ = false;
