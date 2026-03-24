@@ -4,15 +4,19 @@
 #include <chrono>
 #include <string>
 #include <array>
+#include <set>
 #include <vector>
 #include <utility>
 #include <fstream>
+#include <queue>
 
 #include "../external/miniaudio/miniaudio.h"
 #include "drum_track_model.hpp"
 #include "drum_types.hpp"
+#include "utils.hpp"
 
 #include "presets.hpp"
+#include "drum_packs_manager.hpp"
 
 using namespace std::chrono_literals;
 
@@ -28,8 +32,12 @@ private:
     bool is_playing_;
     int bpm_;
     int beatCounter_;
-    std::string drum_kit_assets_path_;
+
     std::string main_session_file_path_;
+
+    std::filesystem::path samples_root_dir_;
+    std::filesystem::path drum_packs_save_dir_;
+    DrumPackManager drum_pack_manager_;
 
     std::chrono::time_point<std::chrono::steady_clock> lastStep_;
 
@@ -39,14 +47,27 @@ private:
 
     std::array<float, NUM_TRACKS> track_volumes_;
 
-    std::vector<std::string> drum_packs_;
-    std::string curr_drum_pack_;
+    std::vector<DrumPack> drum_packs_;
+    int curr_drum_pack_index_ = -1;
 
     std::vector<Preset> presets_list_;
 
     ma_engine engine_;
 
     float volume_;
+
+    // files to be copied
+    std::queue<path_pair_t> copy_queue_;
+    std::vector<std::string> successful_copies_;
+    std::vector<std::pair<std::string, std::string>> copy_errors_;
+
+    path_pair_t current_copying_file_;
+    std::filesystem::path current_conflict_file_;
+
+    bool is_copying_in_progress_;
+    bool has_conflict_;
+
+    bool willConflict(const std::filesystem::path &dest_path);
 
 public:
     DrumController();
@@ -55,8 +76,27 @@ public:
     void initSequencer();
     void initSoundArray();
     Preset initBlankPreset();
+
     void loadInitialSamples();
     void loadSamples(const std::string sample_path);
+
+    void startCopyQueue(std::set<path_pair_t> file_paths);
+    void processNextCopy();
+
+    void replaceCurrentFile();
+    void skipCurrentFile();
+    void renameAndCopyCurrentFile(std::string new_name);
+    void finishCopy();
+
+    std::string getCurrentCopyingFilename();
+    std::string getCurrentConflictFilename();
+
+    // For UI Rendering
+    bool hasCopyConflict();
+    bool isCopyingInProgress();
+    std::vector<std::string> getSuccessfulCopies();
+    std::vector<std::pair<std::string, std::string>> getCopyErrors();
+    int getCopyQueueRemaining();
 
     void setSequencerNoteTrue(Track_t &track, int index);
     void setSequencerNoteFalse(Track_t &track, int index);
@@ -64,11 +104,6 @@ public:
     void updateTracks(std::array<Track_t, NUM_TRACKS> tracks);
     void resetSequencer(Track_t &track);
     void resetAllTracks();
-
-    std::string extractSampleName(std::string file_path);
-    std::string extractDirName(std::string file_path);
-
-    std::array<bool, MAX_STEPS> &getSequencerArray();
 
     std::array<DrumTrackModel, NUM_TRACKS> &getTracks();
     DrumTrackModel &getTrackByIndex(int index);
@@ -85,12 +120,12 @@ public:
     void loadSession();
 
     // Drum Packs
-    // re-scan assets directory for all the drum packs
+    // re-scan drum pack JSON directory for all the drum packs
     void scanDrumPacks();
     void setDrumPack(int index);
     std::string getCurrDrumPack();
     std::vector<std::string> getDrumPacks();
-    int getDrumPackIdx(std::string drum_pack_path);
+    int getDrumPackIdx(std::string drum_pack_name);
 
     // Presets
     void scanPresets();

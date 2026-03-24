@@ -66,8 +66,17 @@ int main(int argc, char const *argv[])
     auto drum_controller = new DrumController();
     auto drum_view = new DrumView(*drum_controller);
 
-    // load main session
+    glfwSetWindowUserPointer(window, drum_view);
 
+    glfwSetDropCallback(window, [](GLFWwindow *window, int count, const char **paths)
+                        {
+        auto *view = static_cast<DrumView *>(glfwGetWindowUserPointer(window));
+        if (view)
+        {
+            view->onFilesDropped(count, paths);
+        } });
+
+    // load main session
     drum_controller->loadSession();
 
     // Main loop

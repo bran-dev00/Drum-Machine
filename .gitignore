@@ -38,3 +38,8 @@ data/main_session/*.json
 #only commit demo 
 !data/presets/demo.json
 
+#samples
+/assets/samples
+
+!/assets/samples/Kit-1
+!/assets/samples/Kit-2

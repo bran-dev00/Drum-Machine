@@ -9,12 +9,18 @@ DrumController::DrumController()
     beatCounter_ = 0;
     bpm_ = 90;
 
-    drum_kit_assets_path_ = (std::filesystem::current_path() / L"assets" / L"drum-kits").string();
-    curr_drum_pack_ = (std::filesystem::current_path() / L"assets" / L"drum-kits" / L"Kit-1").string();
+    drum_packs_save_dir_ = (std::filesystem::current_path() / L"data" / L"drum-kits");
+    samples_root_dir_ = (std::filesystem::current_path() / L"assets" / L"samples");
+
     main_session_file_path_ = (std::filesystem::current_path() / L"data" / L"main_session" / L"main_session.json").string();
 
     ma_engine_init(NULL, &engine_);
     ma_engine_set_volume(&engine_, .5f);
+
+    drum_pack_manager_ = DrumPackManager(samples_root_dir_, drum_packs_save_dir_);
+
+    is_copying_in_progress_ = false;
+    has_conflict_ = false;
 
     // first initialization
     sound_initialized_.fill(false);
@@ -77,25 +83,259 @@ void DrumController::loadSamples(const std::string sample_path)
 
 void DrumController::loadInitialSamples()
 {
-    std::string sample_path = (std::filesystem::current_path() / L"assets" / L"drum-kits" / L"Kit-1").string();
-    loadSamples(sample_path);
+    if (drum_packs_.empty())
+    {
+        return;
+    }
+
+    curr_drum_pack_index_ = 0;
+    samples_paths_.clear();
+
+    const auto &pack = drum_packs_.at(0);
+    for (const auto &path : pack.samples)
+    {
+        if (!path.empty())
+        {
+            samples_paths_.push_back(path.string());
+        }
+    }
 }
 
-std::string DrumController::extractSampleName(std::string file_path)
-{
-    std::string output_str;
-    output_str = file_path.erase(0, file_path.find_last_of("\\") + 1);
-    output_str = output_str.erase(output_str.find_first_of("."));
+// Copy Conflict Handling
 
-    return output_str;
+void DrumController::startCopyQueue(std::set<path_pair_t> file_paths)
+{
+    successful_copies_.clear();
+    copy_errors_.clear();
+    has_conflict_ = false;
+    is_copying_in_progress_ = true;
+
+    // Clear the Queue if not already empty
+    while (!copy_queue_.empty())
+    {
+        copy_queue_.pop();
+    }
+
+    for (const auto &file : file_paths)
+    {
+        copy_queue_.push(file);
+    }
+
+    processNextCopy();
 }
 
-std::string DrumController::extractDirName(std::string file_path)
+void DrumController::processNextCopy()
 {
-    std::string output_str;
-    output_str = file_path.erase(0, file_path.find_last_of("\\") + 1);
+    if (copy_queue_.empty())
+    {
+        is_copying_in_progress_ = false;
+        return;
+    }
 
-    return output_str;
+    current_copying_file_ = copy_queue_.front();
+    current_conflict_file_.clear();
+    has_conflict_ = false;
+
+    auto dest_path = samples_root_dir_ / current_copying_file_.second;
+
+    // std::cout << dest_path << "\n";
+
+    std::error_code ec;
+
+    // Create subdirectories if needed
+    auto dest_parent = dest_path.parent_path();
+    if (!std::filesystem::exists(dest_parent, ec))
+    {
+        // std::cout << "dir to create: " << dest_parent << "\n";
+
+        std::filesystem::create_directories(dest_parent, ec);
+        if (ec)
+        {
+            copy_errors_.emplace_back(current_copying_file_.first.string(), "Failed to create directory: " + ec.message());
+            copy_queue_.pop();
+            processNextCopy();
+            return;
+        }
+    }
+
+    // File already Exists mark it as conflict path
+    if (std::filesystem::exists(dest_path, ec))
+    {
+        current_conflict_file_ = dest_path;
+        has_conflict_ = true;
+        return;
+    }
+
+    std::filesystem::copy_file(current_copying_file_.first, dest_path, ec);
+
+    if (!ec)
+    {
+        successful_copies_.push_back(dest_path.string());
+    }
+    else
+    {
+        copy_errors_.emplace_back(current_copying_file_.first.string(), ec.message());
+    }
+
+    copy_queue_.pop();
+    processNextCopy();
+}
+
+void DrumController::replaceCurrentFile()
+{
+    if (copy_queue_.empty())
+    {
+        return;
+    }
+
+    auto dest_path = samples_root_dir_ / current_copying_file_.second;
+    std::error_code ec;
+
+    // Delete the file, because file is locked
+    if (std::filesystem::exists(dest_path, ec))
+    {
+        std::filesystem::remove(dest_path, ec);
+        if (ec)
+        {
+            copy_errors_.emplace_back(current_copying_file_.first.string(), "Failed to remove existing file: " + ec.message());
+            has_conflict_ = false;
+            current_conflict_file_.clear();
+            copy_queue_.pop();
+            processNextCopy();
+            return;
+        }
+    }
+
+    std::filesystem::copy_file(current_copying_file_.first, dest_path, ec);
+
+    if (!ec)
+    {
+        successful_copies_.push_back(dest_path.string());
+    }
+    else
+    {
+        copy_errors_.emplace_back(current_copying_file_.first.string(), ec.message());
+    }
+
+    has_conflict_ = false;
+    current_conflict_file_.clear();
+    copy_queue_.pop();
+    processNextCopy();
+}
+
+void DrumController::skipCurrentFile()
+{
+    if (!copy_queue_.empty())
+    {
+        copy_queue_.pop();
+    }
+
+    has_conflict_ = false;
+    current_conflict_file_.clear();
+    processNextCopy();
+}
+
+void DrumController::renameAndCopyCurrentFile(std::string new_name)
+{
+    if (copy_queue_.empty())
+    {
+        return;
+    }
+
+    if (new_name.empty())
+    {
+        copy_errors_.emplace_back(current_copying_file_.first.string(), "Empty filename");
+        copy_queue_.pop();
+        processNextCopy();
+        return;
+    }
+
+    std::filesystem::path new_path = samples_root_dir_ / current_copying_file_.second.parent_path() / (new_name + current_copying_file_.first.extension().string());
+
+    if (willConflict(new_path))
+    {
+        copy_errors_.emplace_back(current_copying_file_.first.string(), "Renamed file also conflicts");
+        copy_queue_.pop();
+        processNextCopy();
+        return;
+    }
+
+    std::error_code ec;
+    std::filesystem::copy_file(current_copying_file_.first, new_path, ec);
+
+    if (!ec)
+    {
+        successful_copies_.push_back(new_path.string());
+    }
+    else
+    {
+        copy_errors_.emplace_back(current_copying_file_.first.string(), ec.message());
+    }
+
+    copy_queue_.pop();
+    has_conflict_ = false;
+    current_conflict_file_.clear();
+    processNextCopy();
+}
+
+// Checks to see if there is already a file with the same name in the samples_dir or wherever the destination path is.
+bool DrumController::willConflict(const std::filesystem::path &dest_path)
+{
+    std::error_code ec;
+    return std::filesystem::exists(dest_path, ec);
+}
+
+void DrumController::finishCopy()
+{
+    is_copying_in_progress_ = false;
+    has_conflict_ = false;
+    current_copying_file_ = {};
+    current_conflict_file_.clear();
+
+    while (!copy_queue_.empty())
+    {
+        copy_queue_.pop();
+    }
+
+    scanDrumPacks();
+    loadInitialSamples();
+    initSequencer();
+}
+
+// For UI Rendering
+std::string DrumController::getCurrentCopyingFilename()
+{
+    return current_copying_file_.first.filename().string();
+}
+
+std::string DrumController::getCurrentConflictFilename()
+{
+    return current_conflict_file_.filename().string();
+}
+
+bool DrumController::hasCopyConflict()
+{
+    return has_conflict_;
+}
+
+bool DrumController::isCopyingInProgress()
+{
+    return is_copying_in_progress_;
+}
+
+std::vector<std::string> DrumController::getSuccessfulCopies()
+{
+    return successful_copies_;
+}
+
+std::vector<std::pair<std::string, std::string>> DrumController::getCopyErrors()
+{
+    return copy_errors_;
+}
+
+int DrumController::getCopyQueueRemaining()
+{
+    return static_cast<int>(copy_queue_.size());
 }
 
 void DrumController::initSoundArray()
@@ -123,7 +363,7 @@ void DrumController::initSequencer()
 
         if (i < samples_paths_.size())
         {
-            track_name = extractSampleName(samples_paths_[i]);
+            track_name = PathUtils::extractSampleName(samples_paths_[i]);
             tracks_[i] = DrumTrackModel(track_name, samples_paths_[i]);
 
             if (ma_sound_init_from_file(&engine_, samples_paths_[i].c_str(), MA_SOUND_FLAG_DECODE, NULL, NULL, sounds_[i]) == MA_SUCCESS)
@@ -257,24 +497,20 @@ std::array<float, NUM_TRACKS> DrumController::getTrackVolumes()
     return track_volumes_;
 }
 
+//---Drum Packs---
+
 void DrumController::scanDrumPacks()
 {
-    for (const auto &entry : std::filesystem::directory_iterator(drum_kit_assets_path_))
-    {
-        if (entry.is_directory())
-        {
-            drum_packs_.push_back(entry.path().string());
-        }
-    }
+    drum_packs_ = drum_pack_manager_.loadDrumPacks();
 }
 
-int DrumController::getDrumPackIdx(std::string drum_pack_path)
+int DrumController::getDrumPackIdx(std::string drum_pack_name)
 {
     for (size_t i = 0; i < drum_packs_.size(); i++)
     {
-        if (drum_packs_.at(i) == drum_pack_path)
+        if (drum_packs_.at(i).name == drum_pack_name)
         {
-            return i;
+            return static_cast<int>(i);
         }
     }
 
@@ -283,32 +519,56 @@ int DrumController::getDrumPackIdx(std::string drum_pack_path)
 
 void DrumController::setDrumPack(int index)
 {
-    if (index < 0 || index > drum_packs_.size())
+    if (index < 0 || index >= static_cast<int>(drum_packs_.size()))
     {
         std::cout << "drum_packs_ index out of bounds!\n";
         return;
     }
 
-    if (curr_drum_pack_ != drum_packs_.at(index))
+    if (curr_drum_pack_index_ == index)
     {
-        is_playing_ = false;
-        beatCounter_ = 0;
-        curr_drum_pack_ = drum_packs_.at(index);
-        loadSamples(curr_drum_pack_);
-        // update sounds here
-        initSequencer();
+        return;
     }
-    return;
+
+    is_playing_ = false;
+    beatCounter_ = 0;
+    curr_drum_pack_index_ = index;
+
+    samples_paths_.clear();
+    const auto &pack = drum_packs_.at(index);
+    for (const auto &path : pack.samples)
+    {
+        if (!path.empty())
+        {
+            samples_paths_.push_back(path.string());
+        }
+    }
+
+    // update sounds here
+    initSequencer();
 }
 
 std::string DrumController::getCurrDrumPack()
 {
-    return curr_drum_pack_;
+    if (curr_drum_pack_index_ < 0 || curr_drum_pack_index_ >= static_cast<int>(drum_packs_.size()))
+    {
+        return "";
+    }
+
+    return drum_packs_.at(curr_drum_pack_index_).name;
 }
 
 std::vector<std::string> DrumController::getDrumPacks()
 {
-    return drum_packs_;
+    std::vector<std::string> names;
+    names.reserve(drum_packs_.size());
+
+    for (const auto &pack : drum_packs_)
+    {
+        names.push_back(pack.name);
+    }
+
+    return names;
 }
 
 void DrumController::loadPreset(Preset preset)
@@ -467,6 +727,7 @@ DrumTrackModel &DrumController::getTrackByIndex(int index)
     return tracks_.at(index);
 }
 
+// Main Session File Saving
 void DrumController::saveSession(Preset preset)
 {
     std::ofstream session_file(main_session_file_path_);

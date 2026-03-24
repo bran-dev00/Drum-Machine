@@ -1,5 +1,6 @@
 #pragma once
 #include "drum_controller.hpp"
+#include "utils.hpp"
 #include "presets.hpp"
 #include <filesystem>
 #include "imgui.h"
@@ -8,6 +9,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <set>
 #include <iostream>
 
 #define SCR_SM 800
@@ -23,6 +25,18 @@ private:
     ImGuiStyle &styles_ = ImGui::GetStyle();
     ImGuiIO &io = ImGui::GetIO();
     const ImVec2 base_resolution_ = ImVec2(1920.0f, 1080.0f);
+
+    bool open_add_samples_modal_ = false;
+    bool open_copy_progress_modal_ = false;
+    bool open_copy_completion_modal_ = false;
+
+    static char rename_input_buffer_[256];
+
+    // Buffer
+    std::vector<path_pair_t> files_dropped_buf;
+
+    // Used for rendering, no duplicates
+    std::set<path_pair_t> files_accepted_;
 
     float getScaleFactor() const
     {
@@ -51,6 +65,15 @@ public:
     void drawCustomVolumeSlider(const std::string label, int track_idx, float &value, float v_min, float v_max);
 
     void drawDrumPackSelectionMenu();
+    void drawDrumPackCreationMenu();
+
+    void onFilesDropped(int count, const char **paths);
+    void drawAddSamplesModal();
+
+    void drawCopyConflictModal();
+    void drawCopyProgressModal();
+    void drawCopyCompletionModal();
+
     void drawFileMenu();
     Preset savedCurrentPreset(std::string preset_name);
     void drawSavePresetPopup();
