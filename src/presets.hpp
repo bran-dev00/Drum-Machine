@@ -29,9 +29,6 @@ public:
     static Preset loadPresetFromFile(std::string file_path);
 
     static void savePresetJsonToFile(Preset &preset, const std::string &file_path);
-    static void deletePresetJsonFile(Preset &preset, const std::string &file_path);
-
-    // TODO:DELETE LATER
     static void deletePresetFile(std::string file_path);
 
     friend void to_json(json &j, const Preset preset);

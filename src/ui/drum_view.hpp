@@ -10,7 +10,6 @@
 #include <array>
 #include <vector>
 #include <set>
-#include <iostream>
 #include "ui/drum_view_controls.hpp"
 #include "ui/drum_view_tracks.hpp"
 #include "ui/drum_view_menu.hpp"

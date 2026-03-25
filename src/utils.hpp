@@ -3,8 +3,22 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <algorithm>
+#include <cctype>
 
 using path_pair_t = std::pair<std::filesystem::path, std::filesystem::path>;
+
+namespace StringUtils
+{
+    inline std::string toSnakeCase(const std::string &input_str)
+    {
+        std::string output_str = input_str;
+        std::replace(output_str.begin(), output_str.end(), ' ', '_');
+        std::transform(output_str.begin(), output_str.end(), output_str.begin(),
+                       [](unsigned char c) { return static_cast<unsigned char>(std::tolower(c)); });
+        return output_str;
+    }
+}
 
 namespace FileValidation
 {
@@ -26,7 +40,6 @@ namespace PathUtils
         return path.filename().string();
     }
 
-    // For handling directories
     inline std::filesystem::path computeRelativePath(const std::filesystem::path &full_path, const std::filesystem::path &base_dir)
     {
         std::filesystem::path base_name = base_dir.filename();

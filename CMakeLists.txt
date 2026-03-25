@@ -67,6 +67,5 @@ target_link_libraries(drum_controller PUBLIC nlohmann_json)
 target_link_libraries(DrumMachine PRIVATE drum_controller imgui glfw OpenGL::GL nlohmann_json)
 
 if(WIN32)
-	# On Windows also link to winmm and ensure drum_controller is linked
-	target_link_libraries(DrumMachine PRIVATE winmm drum_controller imgui glfw OpenGL::GL)
+	target_link_libraries(DrumMachine PRIVATE winmm)
 endif()

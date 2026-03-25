@@ -1,4 +1,5 @@
 #include "drum_controller.hpp"
+#include "utils.hpp"
 #include <string>
 #include <iostream>
 
@@ -612,24 +613,9 @@ void DrumController::scanPresets()
     }
 }
 
-// helper function
-static std::string toSnakeCase(std::string input_str)
-{
-    std::string output_str = input_str;
-
-    std::replace(output_str.begin(), output_str.end(), ' ', '_');
-
-    // to lowercase
-    std::transform(output_str.begin(), output_str.end(), output_str.begin(),
-                   [](unsigned char c)
-                   { return static_cast<unsigned char>(std::tolower(c)); });
-
-    return output_str;
-}
-
 void DrumController::addPreset(Preset preset)
 {
-    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (toSnakeCase(preset.getPresetName()) + ".json")).string();
+    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (StringUtils::toSnakeCase(preset.getPresetName()) + ".json")).string();
     Preset::savePresetJsonToFile(preset, preset_file_path);
 
     // update presets_list_
@@ -651,7 +637,7 @@ void DrumController::deletePreset(int index)
     }
 
     Preset preset_to_delete = presets_list_.at(index);
-    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (toSnakeCase(preset_to_delete.getPresetName()) + ".json")).string();
+    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (StringUtils::toSnakeCase(preset_to_delete.getPresetName()) + ".json")).string();
     Preset::deletePresetFile(preset_file_path);
 
     // update presets_list_
