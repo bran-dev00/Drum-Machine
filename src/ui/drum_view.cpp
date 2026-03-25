@@ -4,7 +4,7 @@
 
 char DrumView::rename_input_buffer_[256];
 
-DrumView::DrumView(DrumController &controller) : drum_controller_(controller), controls_(controller)
+DrumView::DrumView(DrumController &controller) : drum_controller_(controller), drum_view_controls_(controller), drum_view_tracks_(controller)
 {
     // Global Styles
     styles_.FrameRounding = 3.0f;
@@ -36,134 +36,14 @@ void DrumView::drawHoverCursor()
     }
 }
 
-void DrumView::drawBeatCounterLabels(const std::array<float, MAX_STEPS> &positions)
+void DrumView::drawControls(float start_x)
 {
-    float y = ImGui::GetCursorScreenPos().y;
-
-    for (size_t i = 0; i < positions.size(); ++i)
-    {
-        ImGui::AlignTextToFramePadding();
-        std::string label = std::to_string(static_cast<int>(i) + 1);
-        ImVec2 text_size = ImGui::CalcTextSize(label.c_str());
-        // positions contains the center X of each checkbox
-        float x = positions[i] - (text_size.x / 2.0f);
-        ImGui::SetCursorScreenPos(ImVec2(x, y));
-        ImGui::TextUnformatted(label.c_str());
-    }
-}
-
-void DrumView::drawTrack(int track_idx, Track_t &track, std::array<float, MAX_STEPS> &checkbox_positions, float checkbox_size)
-{
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(checkbox_size, checkbox_size));
-
-    for (int j = 0; j < MAX_STEPS; ++j)
-    {
-        std::string id = std::string("##track_") + std::to_string(track_idx) + "_beat_" + std::to_string(j);
-        if (ImGui::Checkbox(id.c_str(), &track[j]))
-        {
-            if (j < MAX_STEPS)
-            {
-                if (track[j])
-                {
-                    drum_controller_.setSequencerNoteTrue(track, j);
-                }
-                else
-                {
-                    drum_controller_.setSequencerNoteFalse(track, j);
-                }
-            }
-        }
-
-        ImVec2 item_min = ImGui::GetItemRectMin();
-        ImVec2 item_max = ImGui::GetItemRectMax();
-        float center_x = (item_min.x + item_max.x) * 0.5f;
-        checkbox_positions[j] = center_x;
-
-        ImGui::SameLine();
-    }
-    ImGui::PopStyleVar();
+    drum_view_controls_.drawControls(start_x);
 }
 
 void DrumView::drawTracks(float width)
 {
-    auto &tracks = drum_controller_.getTracks();
-    std::array<float, NUM_TRACKS> track_volumes = drum_controller_.getTrackVolumes();
-
-    // Store the checkbox positions to calculate label position
-    std::array<float, MAX_STEPS> checkbox_positions{};
-
-    float scale = getScaleFactor();
-    float partition_size = getPartitionSize();
-    float item_spacing = ImGui::GetStyle().ItemSpacing.x;
-    float font_size = ImGui::GetFontSize();
-
-    float checkbox_budget = width * (4.0f / 5.0f);
-
-    float checkbox_size = (std::max)(1.0f, (checkbox_budget / MAX_STEPS - font_size - item_spacing) * 0.5f);
-
-    drawBeatIndicator(width);
-
-    ImGui::BeginChild("Tracks", ImVec2(width, 0), false, ImGuiWindowFlags_NoScrollbar);
-    for (int i = 0; i < NUM_TRACKS; ++i)
-    {
-        ma_sound *sound = drum_controller_.getSound(i);
-
-        std::string track_name = tracks[i].getName();
-        ImGui::SeparatorText(track_name.c_str());
-
-        Track_t &track = tracks.at(i).getTrackSequencer();
-
-        ImGui::PushID(i);
-
-        // std::cout << "checkbox_size: " << checkbox_size << "\n";
-        drawTrack(i, track, checkbox_positions, checkbox_size);
-
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + checkbox_size - 2.0f);
-        if (ImGui::Button("Reset"))
-        {
-            drum_controller_.resetSequencer(track);
-        }
-        ImGui::SameLine();
-
-        float button_height = ImGui::GetFrameHeight();
-        float slider_height = button_height / 2;
-        float vertical_offset = (button_height - slider_height) * 0.5f;
-
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + vertical_offset + checkbox_size);
-        ImGui::PushItemWidth(150.0f * scale);
-        DrumViewUtils::drawCustomVolumeSlider("Volume", i, track_volumes.at(i), 0, 1, drum_controller_);
-        ImGui::PopItemWidth();
-
-        ImGui::PopID();
-
-        ImGui::NewLine();
-    }
-
-    drawBeatCounterLabels(checkbox_positions);
-    ImGui::SameLine(0.0f, 10.0f);
-    drawResetAllButton();
-    ImGui::EndChild();
-}
-
-void DrumView::drawBeatIndicator(float width)
-{
-    float checkbox_width = ImGui::GetFrameHeightWithSpacing() * 1.5f;
-    ImGui::PushItemWidth(width);
-    ImGui::SliderInt("##Beat", &drum_controller_.getBeatCounter(), 1, MAX_STEPS);
-    ImGui::PopItemWidth();
-}
-
-void DrumView::drawResetAllButton()
-{
-    if (ImGui::Button("Reset All"))
-    {
-        drum_controller_.resetAllTracks();
-    }
-}
-
-void DrumView::drawControls(float start_x)
-{
-    controls_.drawControls(start_x);
+    drum_view_tracks_.drawTracks(width);
 }
 
 void DrumView::drawDrumPackSelectionMenu()
@@ -679,26 +559,6 @@ void DrumView::drawMainContainer(float start_x, float width)
 
     ImGui::EndChild();
     ImGui::PopStyleVar();
-}
-
-void DrumView::drawDebug()
-{
-    float partition = getPartitionSize();
-
-    ImGui::SetCursorPosY(25.0f);
-    ImGui::SetCursorPosX(0);
-    ImGui::Text("0");
-    ImGui::SameLine();
-    for (int i = 1; i < 8; i++)
-    {
-        ImGui::SetCursorPosX((i * partition));
-        ImGui::Text(std::to_string(i).c_str());
-        ImGui::SameLine();
-    }
-    ImU32 line_color = ImColor(255, 255, 255, 255);
-    ImDrawList *draw_list = ImGui::GetWindowDrawList();
-
-    draw_list->AddLine(ImVec2((partition * 1), 50), ImVec2((partition * 7), 50), line_color, 1.0f);
 }
 
 void DrumView::draw()

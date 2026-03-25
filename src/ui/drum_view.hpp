@@ -12,6 +12,7 @@
 #include <set>
 #include <iostream>
 #include "ui/drum_view_controls.hpp"
+#include "ui/drum_view_tracks.hpp"
 
 #define SCR_SM 800
 #define SCR_MD 1024
@@ -23,7 +24,9 @@ class DrumView
 {
 private:
     DrumController &drum_controller_;
-    DrumViewControls controls_;
+    DrumViewControls drum_view_controls_;
+    DrumViewTracks drum_view_tracks_;
+
     ImGuiStyle &styles_ = ImGui::GetStyle();
     ImGuiIO &io = ImGui::GetIO();
     const ImVec2 base_resolution_ = ImVec2(1920.0f, 1080.0f);
@@ -55,7 +58,7 @@ public:
     ~DrumView();
 
     // Temp
-    void drawDebug();
+    // void drawDebug();
 
     void drawHoverCursor();
 

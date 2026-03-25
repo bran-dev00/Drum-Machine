@@ -55,4 +55,24 @@ namespace DrumViewUtils
         draw_list->AddCircleFilled(ImVec2(handle_x, p.y + height * 0.5f), height * 0.75f, handle_color);
     }
 
+    inline void drawDebug()
+    {
+        float partition = getPartitionSize();
+
+        ImGui::SetCursorPosY(25.0f);
+        ImGui::SetCursorPosX(0);
+        ImGui::Text("0");
+        ImGui::SameLine();
+        for (int i = 1; i < 8; i++)
+        {
+            ImGui::SetCursorPosX((i * partition));
+            ImGui::Text(std::to_string(i).c_str());
+            ImGui::SameLine();
+        }
+        ImU32 line_color = ImColor(255, 255, 255, 255);
+        ImDrawList *draw_list = ImGui::GetWindowDrawList();
+
+        draw_list->AddLine(ImVec2((partition * 1), 50), ImVec2((partition * 7), 50), line_color, 1.0f);
+    }
+
 }
