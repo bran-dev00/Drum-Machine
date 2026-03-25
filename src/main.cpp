@@ -12,7 +12,7 @@
 #include "stb_image.h"
 
 #include "drum_controller.hpp"
-#include "drum_view.hpp"
+#include "ui/drum_view.hpp"
 #include "themes.hpp"
 
 int main(int argc, char const *argv[])

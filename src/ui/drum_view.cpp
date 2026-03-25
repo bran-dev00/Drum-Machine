@@ -4,7 +4,7 @@
 
 char DrumView::rename_input_buffer_[256];
 
-DrumView::DrumView(DrumController &controller) : drum_controller_(controller)
+DrumView::DrumView(DrumController &controller) : drum_controller_(controller), controls_(controller)
 {
     // Global Styles
     styles_.FrameRounding = 3.0f;
@@ -50,46 +50,6 @@ void DrumView::drawBeatCounterLabels(const std::array<float, MAX_STEPS> &positio
         ImGui::SetCursorScreenPos(ImVec2(x, y));
         ImGui::TextUnformatted(label.c_str());
     }
-}
-
-void DrumView::drawCustomVolumeSlider(std::string label, int track_idx, float &value, float v_min, float v_max)
-{
-
-    ImVec2 p = ImGui::GetCursorScreenPos();
-    float width = ImGui::CalcItemWidth() / 1.5f;
-    float height = ImGui::GetFrameHeight() / 2.5f;
-
-    ImU32 bg_color = ImGui::GetColorU32(ImGuiCol_FrameBg);
-    ImU32 handle_color = ImGui::GetColorU32(ImVec4(255.0f, 255.0f, 255.0f, 1.0f));
-
-    ImGui::InvisibleButton(label.c_str(), ImVec2(width, height));
-
-    bool is_active = ImGui::IsItemActive();
-    bool clicked = ImGui::IsItemClicked();
-
-    if (is_active)
-    {
-        float mouse_pos = ImGui::GetMousePos().x - p.x;
-        value = v_min + (mouse_pos / width) * (v_max - v_min);
-        value = ImClamp(value, v_min, v_max);
-
-        if (track_idx == -1)
-        {
-            drum_controller_.setMasterVolume(value);
-        }
-        else
-        {
-            drum_controller_.setSoundVolume(track_idx, value);
-        }
-    }
-
-    ImDrawList *draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), bg_color, height * 0.5f);
-    float fill_width = ((value - v_min) / (v_max - v_min)) * width;
-    draw_list->AddRectFilled(p, ImVec2(p.x + fill_width, p.y + height), handle_color, height * 0.5f);
-
-    float handle_x = p.x + fill_width;
-    draw_list->AddCircleFilled(ImVec2(handle_x, p.y + height * 0.5f), height * 0.75f, handle_color);
 }
 
 void DrumView::drawTrack(int track_idx, Track_t &track, std::array<float, MAX_STEPS> &checkbox_positions, float checkbox_size)
@@ -171,7 +131,7 @@ void DrumView::drawTracks(float width)
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + vertical_offset + checkbox_size);
         ImGui::PushItemWidth(150.0f * scale);
-        drawCustomVolumeSlider("Volume", i, track_volumes.at(i), 0, 1);
+        DrumViewUtils::drawCustomVolumeSlider("Volume", i, track_volumes.at(i), 0, 1, drum_controller_);
         ImGui::PopItemWidth();
 
         ImGui::PopID();
@@ -201,80 +161,9 @@ void DrumView::drawResetAllButton()
     }
 }
 
-void DrumView::drawBpmControls(int &bpm)
-{
-
-    ImGui::BeginGroup();
-    ImGui::AlignTextToFramePadding();
-    ImGui::Text("BPM");
-    ImGui::SameLine();
-
-    ImGui::PushItemWidth(100.0f);
-    if (ImGui::InputInt("##BPM", &bpm, 1, 10))
-    {
-        if (bpm < 20)
-        {
-            drum_controller_.setBpm(20);
-        }
-        else if (bpm > 999)
-        {
-            drum_controller_.setBpm(999);
-        }
-        else
-        {
-            drum_controller_.setBpm(bpm);
-        }
-    }
-    ImGui::PopItemWidth();
-    ImGui::EndGroup();
-}
-
-void DrumView::drawMasterVolume(float &volume)
-{
-    float scale = getScaleFactor();
-    ImGui::Text("Master Volume");
-
-    ImGui::PushItemWidth(std::clamp(200.0f * scale, 100.0f, 300.0f));
-    drawCustomVolumeSlider("##Master_Volume", -1, volume, 0, 5);
-    ImGui::PopItemWidth();
-}
-
-void DrumView::drawTogglePlayButton()
-{
-    float scale = getScaleFactor();
-
-    ImGui::PushItemWidth(100.0f * scale);
-    std::string playing_status = drum_controller_.getIsPlaying() ? "Pause" : "Play";
-    if (ImGui::Button(playing_status.c_str()))
-    {
-        drum_controller_.toggleSequencer();
-    }
-    ImGui::PopItemWidth();
-}
-
 void DrumView::drawControls(float start_x)
 {
-    int bpm = drum_controller_.getBpm();
-    float volume = drum_controller_.getMasterVolume();
-
-    ImGui::SetCursorPosX(start_x);
-    drawTogglePlayButton();
-
-    float text_width = ImGui::CalcTextSize("BPM").x;
-    float item_spacing = ImGui::GetStyle().ItemSpacing.x;
-    float input_width = 100.0f;
-    float total_group_size = text_width + item_spacing + input_width;
-
-    float right_align = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().WindowPadding.x;
-
-    ImGui::SameLine();
-    ImGui::SetCursorPosX((right_align - total_group_size) + 5.0f);
-    drawBpmControls(bpm);
-
-    ImGui::NewLine();
-    ImGui::SetCursorPosX(start_x);
-    drawMasterVolume(volume);
-    ImGui::NewLine();
+    controls_.drawControls(start_x);
 }
 
 void DrumView::drawDrumPackSelectionMenu()

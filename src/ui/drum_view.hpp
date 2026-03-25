@@ -11,6 +11,7 @@
 #include <vector>
 #include <set>
 #include <iostream>
+#include "ui/drum_view_controls.hpp"
 
 #define SCR_SM 800
 #define SCR_MD 1024
@@ -22,6 +23,7 @@ class DrumView
 {
 private:
     DrumController &drum_controller_;
+    DrumViewControls controls_;
     ImGuiStyle &styles_ = ImGui::GetStyle();
     ImGuiIO &io = ImGui::GetIO();
     const ImVec2 base_resolution_ = ImVec2(1920.0f, 1080.0f);
@@ -62,7 +64,6 @@ public:
     void drawTracks(float width);
 
     void drawBeatIndicator(float width);
-    void drawCustomVolumeSlider(const std::string label, int track_idx, float &value, float v_min, float v_max);
 
     void drawDrumPackSelectionMenu();
     void drawDrumPackCreationMenu();
@@ -81,11 +82,6 @@ public:
     void drawPresetsMenu();
 
     void drawMenuBar();
-
-    void drawBpmControls(int &bpm);
-    void drawMasterVolume(float &volume);
-    void drawTogglePlayButton();
-
     void drawControls(float start_x);
     void drawResetAllButton();
     void drawMainContainer(float start_x, float width);
