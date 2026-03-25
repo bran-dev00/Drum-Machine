@@ -455,21 +455,15 @@ void DrumController::initTrackVolumesArr()
     }
 }
 
-void DrumController::setMasterVolume(float value = .5f)
+void DrumController::setMasterVolume(float value)
 {
-    if (value < 0)
-    {
-        volume_ = 0;
-    }
-
-    // TODO: Volume Limit
     volume_ = value;
-    ma_engine_set_volume(&engine_, value);
+    ma_engine_set_gain_db(&engine_, value);
 }
 
 float DrumController::getMasterVolume()
 {
-    return ma_engine_get_volume(&engine_);
+    return ma_engine_get_gain_db(&engine_);
 }
 
 ma_sound *DrumController::getSound(int index)
@@ -480,13 +474,16 @@ ma_sound *DrumController::getSound(int index)
 void DrumController::setSoundVolume(int track_idx, float value)
 {
     ma_sound *pSound = sounds_.at(track_idx);
-    ma_sound_set_volume(pSound, value);
-    track_volumes_.at(track_idx) = ma_sound_get_volume(pSound);
+    float linear_value = ma_volume_db_to_linear(value);
+    ma_sound_set_volume(pSound, linear_value);
+    track_volumes_.at(track_idx) = value;
 }
 
 float DrumController::getSoundVolume(int track_idx)
 {
-    return track_volumes_.at(track_idx);
+    ma_sound *pSound = sounds_.at(track_idx);
+    float linear_volume = ma_sound_get_volume(pSound);
+    return ma_volume_linear_to_db(linear_volume);
 }
 
 std::array<float, NUM_TRACKS> DrumController::getTrackVolumes()

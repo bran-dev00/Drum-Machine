@@ -58,8 +58,8 @@ void DrumViewControls::drawMasterVolume(float &volume)
     float scale = DrumViewUtils::getScaleFactor(ImGui::GetWindowSize().x);
     ImGui::Text("Master Volume");
 
-    ImGui::PushItemWidth(std::clamp(200.0f * scale, 100.0f, 300.0f));
-    DrumViewUtils::drawCustomVolumeSlider("##Master_Volume", -1, volume, 0, 5, drum_controller_);
+    ImGui::PushItemWidth(std::clamp(120.0f * scale, 100.0f, 200.0f));
+    DrumViewUtils::drawCustomVolumeSlider("##Master_Volume", -1, volume, -40, 10, drum_controller_);
     ImGui::PopItemWidth();
 }
 

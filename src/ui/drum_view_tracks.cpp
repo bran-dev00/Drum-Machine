@@ -110,8 +110,8 @@ void DrumViewTracks::drawTracks(float width)
         float vertical_offset = (button_height - slider_height) * 0.5f;
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + vertical_offset + checkbox_size);
-        ImGui::PushItemWidth(150.0f * scale);
-        DrumViewUtils::drawCustomVolumeSlider("Volume", i, track_volumes.at(i), 0, 1, drum_controller_);
+        ImGui::PushItemWidth(100.0f * scale);
+        DrumViewUtils::drawCustomVolumeSlider("Volume", i, track_volumes.at(i), -40, 10, drum_controller_);
         ImGui::PopItemWidth();
 
         ImGui::PopID();
