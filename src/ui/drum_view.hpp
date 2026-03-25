@@ -13,6 +13,7 @@
 #include <iostream>
 #include "ui/drum_view_controls.hpp"
 #include "ui/drum_view_tracks.hpp"
+#include "ui/drum_view_menu.hpp"
 
 #define SCR_SM 800
 #define SCR_MD 1024
@@ -26,22 +27,11 @@ private:
     DrumController &drum_controller_;
     DrumViewControls drum_view_controls_;
     DrumViewTracks drum_view_tracks_;
+    DrumViewMenu drum_view_menu_;
 
     ImGuiStyle &styles_ = ImGui::GetStyle();
     ImGuiIO &io = ImGui::GetIO();
     const ImVec2 base_resolution_ = ImVec2(1920.0f, 1080.0f);
-
-    bool open_add_samples_modal_ = false;
-    bool open_copy_progress_modal_ = false;
-    bool open_copy_completion_modal_ = false;
-
-    static char rename_input_buffer_[256];
-
-    // Buffer
-    std::vector<path_pair_t> files_dropped_buf;
-
-    // Used for rendering, no duplicates
-    std::set<path_pair_t> files_accepted_;
 
     float getScaleFactor() const
     {
@@ -57,37 +47,11 @@ public:
     DrumView(DrumController &controller);
     ~DrumView();
 
-    // Temp
-    // void drawDebug();
+    void onFilesDropped(int count, const char **paths);
+    Preset savedCurrentPreset(std::string preset_name);
 
     void drawHoverCursor();
-
-    void drawBeatCounterLabels(const std::array<float, MAX_STEPS> &positions);
-    void drawTrack(int id, Track_t &track, std::array<float, MAX_STEPS> &checkbox_positions, float checkbox_size);
-    void drawTracks(float width);
-
-    void drawBeatIndicator(float width);
-
-    void drawDrumPackSelectionMenu();
-    void drawDrumPackCreationMenu();
-
-    void onFilesDropped(int count, const char **paths);
-    void drawAddSamplesModal();
-
-    void drawCopyConflictModal();
-    void drawCopyProgressModal();
-    void drawCopyCompletionModal();
-
-    void drawFileMenu();
-    Preset savedCurrentPreset(std::string preset_name);
-    void drawSavePresetPopup();
-    void drawDeleteSubMenu();
-    void drawPresetsMenu();
-
-    void drawMenuBar();
     void drawControls(float start_x);
-    void drawResetAllButton();
     void drawMainContainer(float start_x, float width);
-
     void draw();
 };
