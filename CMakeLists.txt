@@ -37,6 +37,7 @@ add_executable(DrumMachine
 	src/ui/drum_view_controls.cpp
 	src/ui/drum_view_tracks.cpp
 	src/ui/drum_view_menu.cpp
+	src/file_manager.cpp
 	external/miniaudio/miniaudio.cpp
 )
 
