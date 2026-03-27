@@ -1,4 +1,5 @@
 #include "drum_controller.hpp"
+#include "utils.hpp"
 #include <string>
 #include <iostream>
 
@@ -18,6 +19,7 @@ DrumController::DrumController()
     ma_engine_set_volume(&engine_, .5f);
 
     drum_pack_manager_ = DrumPackManager(samples_root_dir_, drum_packs_save_dir_);
+    file_manager_ = FileManager(samples_root_dir_);
 
     is_copying_in_progress_ = false;
     has_conflict_ = false;
@@ -105,197 +107,38 @@ void DrumController::loadInitialSamples()
 
 void DrumController::startCopyQueue(std::set<path_pair_t> file_paths)
 {
-    successful_copies_.clear();
-    copy_errors_.clear();
-    has_conflict_ = false;
-    is_copying_in_progress_ = true;
-
-    // Clear the Queue if not already empty
-    while (!copy_queue_.empty())
-    {
-        copy_queue_.pop();
-    }
-
-    for (const auto &file : file_paths)
-    {
-        copy_queue_.push(file);
-    }
-
-    processNextCopy();
+    file_manager_.startCopyQueue(file_paths);
 }
 
 void DrumController::processNextCopy()
 {
-    if (copy_queue_.empty())
-    {
-        is_copying_in_progress_ = false;
-        return;
-    }
-
-    current_copying_file_ = copy_queue_.front();
-    current_conflict_file_.clear();
-    has_conflict_ = false;
-
-    auto dest_path = samples_root_dir_ / current_copying_file_.second;
-
-    // std::cout << dest_path << "\n";
-
-    std::error_code ec;
-
-    // Create subdirectories if needed
-    auto dest_parent = dest_path.parent_path();
-    if (!std::filesystem::exists(dest_parent, ec))
-    {
-        // std::cout << "dir to create: " << dest_parent << "\n";
-
-        std::filesystem::create_directories(dest_parent, ec);
-        if (ec)
-        {
-            copy_errors_.emplace_back(current_copying_file_.first.string(), "Failed to create directory: " + ec.message());
-            copy_queue_.pop();
-            processNextCopy();
-            return;
-        }
-    }
-
-    // File already Exists mark it as conflict path
-    if (std::filesystem::exists(dest_path, ec))
-    {
-        current_conflict_file_ = dest_path;
-        has_conflict_ = true;
-        return;
-    }
-
-    std::filesystem::copy_file(current_copying_file_.first, dest_path, ec);
-
-    if (!ec)
-    {
-        successful_copies_.push_back(dest_path.string());
-    }
-    else
-    {
-        copy_errors_.emplace_back(current_copying_file_.first.string(), ec.message());
-    }
-
-    copy_queue_.pop();
-    processNextCopy();
+    file_manager_.processNextCopy();
 }
 
 void DrumController::replaceCurrentFile()
 {
-    if (copy_queue_.empty())
-    {
-        return;
-    }
-
-    auto dest_path = samples_root_dir_ / current_copying_file_.second;
-    std::error_code ec;
-
-    // Delete the file, because file is locked
-    if (std::filesystem::exists(dest_path, ec))
-    {
-        std::filesystem::remove(dest_path, ec);
-        if (ec)
-        {
-            copy_errors_.emplace_back(current_copying_file_.first.string(), "Failed to remove existing file: " + ec.message());
-            has_conflict_ = false;
-            current_conflict_file_.clear();
-            copy_queue_.pop();
-            processNextCopy();
-            return;
-        }
-    }
-
-    std::filesystem::copy_file(current_copying_file_.first, dest_path, ec);
-
-    if (!ec)
-    {
-        successful_copies_.push_back(dest_path.string());
-    }
-    else
-    {
-        copy_errors_.emplace_back(current_copying_file_.first.string(), ec.message());
-    }
-
-    has_conflict_ = false;
-    current_conflict_file_.clear();
-    copy_queue_.pop();
-    processNextCopy();
+    file_manager_.replaceCurrentFile();
 }
 
 void DrumController::skipCurrentFile()
 {
-    if (!copy_queue_.empty())
-    {
-        copy_queue_.pop();
-    }
-
-    has_conflict_ = false;
-    current_conflict_file_.clear();
-    processNextCopy();
+    file_manager_.skipCurrentFile();
 }
 
 void DrumController::renameAndCopyCurrentFile(std::string new_name)
 {
-    if (copy_queue_.empty())
-    {
-        return;
-    }
-
-    if (new_name.empty())
-    {
-        copy_errors_.emplace_back(current_copying_file_.first.string(), "Empty filename");
-        copy_queue_.pop();
-        processNextCopy();
-        return;
-    }
-
-    std::filesystem::path new_path = samples_root_dir_ / current_copying_file_.second.parent_path() / (new_name + current_copying_file_.first.extension().string());
-
-    if (willConflict(new_path))
-    {
-        copy_errors_.emplace_back(current_copying_file_.first.string(), "Renamed file also conflicts");
-        copy_queue_.pop();
-        processNextCopy();
-        return;
-    }
-
-    std::error_code ec;
-    std::filesystem::copy_file(current_copying_file_.first, new_path, ec);
-
-    if (!ec)
-    {
-        successful_copies_.push_back(new_path.string());
-    }
-    else
-    {
-        copy_errors_.emplace_back(current_copying_file_.first.string(), ec.message());
-    }
-
-    copy_queue_.pop();
-    has_conflict_ = false;
-    current_conflict_file_.clear();
-    processNextCopy();
+    file_manager_.renameAndCopyCurrentFile(new_name);
 }
 
 // Checks to see if there is already a file with the same name in the samples_dir or wherever the destination path is.
 bool DrumController::willConflict(const std::filesystem::path &dest_path)
 {
-    std::error_code ec;
-    return std::filesystem::exists(dest_path, ec);
+    return file_manager_.willConflict(dest_path);
 }
 
 void DrumController::finishCopy()
 {
-    is_copying_in_progress_ = false;
-    has_conflict_ = false;
-    current_copying_file_ = {};
-    current_conflict_file_.clear();
-
-    while (!copy_queue_.empty())
-    {
-        copy_queue_.pop();
-    }
+    file_manager_.finishCopy();
 
     scanDrumPacks();
     loadInitialSamples();
@@ -305,37 +148,37 @@ void DrumController::finishCopy()
 // For UI Rendering
 std::string DrumController::getCurrentCopyingFilename()
 {
-    return current_copying_file_.first.filename().string();
+    return file_manager_.getCurrentCopyingFilename();
 }
 
 std::string DrumController::getCurrentConflictFilename()
 {
-    return current_conflict_file_.filename().string();
+    return file_manager_.getCurrentConflictFilename();
 }
 
 bool DrumController::hasCopyConflict()
 {
-    return has_conflict_;
+    return file_manager_.hasCopyConflict();
 }
 
 bool DrumController::isCopyingInProgress()
 {
-    return is_copying_in_progress_;
+    return file_manager_.isCopyingInProgress();
 }
 
 std::vector<std::string> DrumController::getSuccessfulCopies()
 {
-    return successful_copies_;
+    return file_manager_.getSuccessfulCopies();
 }
 
 std::vector<std::pair<std::string, std::string>> DrumController::getCopyErrors()
 {
-    return copy_errors_;
+    return file_manager_.getCopyErrors();
 }
 
 int DrumController::getCopyQueueRemaining()
 {
-    return static_cast<int>(copy_queue_.size());
+    return file_manager_.getCopyQueueRemaining();
 }
 
 void DrumController::initSoundArray()
@@ -454,21 +297,15 @@ void DrumController::initTrackVolumesArr()
     }
 }
 
-void DrumController::setMasterVolume(float value = .5f)
+void DrumController::setMasterVolume(float value)
 {
-    if (value < 0)
-    {
-        volume_ = 0;
-    }
-
-    // TODO: Volume Limit
     volume_ = value;
-    ma_engine_set_volume(&engine_, value);
+    ma_engine_set_gain_db(&engine_, value);
 }
 
 float DrumController::getMasterVolume()
 {
-    return ma_engine_get_volume(&engine_);
+    return ma_engine_get_gain_db(&engine_);
 }
 
 ma_sound *DrumController::getSound(int index)
@@ -479,13 +316,16 @@ ma_sound *DrumController::getSound(int index)
 void DrumController::setSoundVolume(int track_idx, float value)
 {
     ma_sound *pSound = sounds_.at(track_idx);
-    ma_sound_set_volume(pSound, value);
-    track_volumes_.at(track_idx) = ma_sound_get_volume(pSound);
+    float linear_value = ma_volume_db_to_linear(value);
+    ma_sound_set_volume(pSound, linear_value);
+    track_volumes_.at(track_idx) = value;
 }
 
 float DrumController::getSoundVolume(int track_idx)
 {
-    return track_volumes_.at(track_idx);
+    ma_sound *pSound = sounds_.at(track_idx);
+    float linear_volume = ma_sound_get_volume(pSound);
+    return ma_volume_linear_to_db(linear_volume);
 }
 
 std::array<float, NUM_TRACKS> DrumController::getTrackVolumes()
@@ -612,24 +452,9 @@ void DrumController::scanPresets()
     }
 }
 
-// helper function
-static std::string toSnakeCase(std::string input_str)
-{
-    std::string output_str = input_str;
-
-    std::replace(output_str.begin(), output_str.end(), ' ', '_');
-
-    // to lowercase
-    std::transform(output_str.begin(), output_str.end(), output_str.begin(),
-                   [](unsigned char c)
-                   { return static_cast<unsigned char>(std::tolower(c)); });
-
-    return output_str;
-}
-
 void DrumController::addPreset(Preset preset)
 {
-    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (toSnakeCase(preset.getPresetName()) + ".json")).string();
+    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (StringUtils::toSnakeCase(preset.getPresetName()) + ".json")).string();
     Preset::savePresetJsonToFile(preset, preset_file_path);
 
     // update presets_list_
@@ -651,7 +476,7 @@ void DrumController::deletePreset(int index)
     }
 
     Preset preset_to_delete = presets_list_.at(index);
-    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (toSnakeCase(preset_to_delete.getPresetName()) + ".json")).string();
+    std::string preset_file_path = (std::filesystem::current_path() / L"data" / "presets" / (StringUtils::toSnakeCase(preset_to_delete.getPresetName()) + ".json")).string();
     Preset::deletePresetFile(preset_file_path);
 
     // update presets_list_

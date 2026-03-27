@@ -1,14 +1,5 @@
 #include "drum_packs_manager.hpp"
-
-static std::string toSnakeCase(const std::string &input_str)
-{
-    std::string output_str = input_str;
-    std::replace(output_str.begin(), output_str.end(), ' ', '_');
-    std::transform(output_str.begin(), output_str.end(), output_str.begin(),
-                   [](unsigned char c)
-                   { return static_cast<unsigned char>(std::tolower(c)); });
-    return output_str;
-}
+#include "utils.hpp"
 
 DrumPackManager::DrumPackManager(std::filesystem::path root_samples_path, std::filesystem::path save_data_path)
     : root_samples_path_(root_samples_path), save_data_path_(save_data_path)
@@ -31,7 +22,7 @@ void DrumPackManager::saveDrumPack(const DrumPack &drum_pack)
         std::filesystem::create_directories(save_data_path_);
     }
 
-    auto file_path = save_data_path_ / (toSnakeCase(drum_pack.name) + ".json");
+    auto file_path = save_data_path_ / (StringUtils::toSnakeCase(drum_pack.name) + ".json");
     std::ofstream file(file_path);
 
     if (file.is_open())

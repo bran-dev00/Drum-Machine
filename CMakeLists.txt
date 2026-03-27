@@ -31,18 +31,29 @@ target_include_directories(imgui PUBLIC
 # imgui needs GLFW headers and OpenGL for its backends
 target_link_libraries(imgui PRIVATE glfw OpenGL::GL)
 
-add_executable(DrumMachine src/main.cpp src/drum_view.cpp external/miniaudio/miniaudio.cpp)
+add_executable(DrumMachine 
+	src/main.cpp 
+	src/ui/drum_view.cpp
+	src/ui/drum_view_controls.cpp
+	src/ui/drum_view_tracks.cpp
+	src/ui/drum_view_menu.cpp
+	src/file_manager.cpp
+	external/miniaudio/miniaudio.cpp
+)
 
 # Build drum_controller as a static library and expose its headers
 add_library(drum_controller STATIC
-    src/drum_controller.cpp
-    src/drum_track_model.cpp
-    src/presets.cpp
-    src/drum_packs_manager.cpp
-    src/drum_pack.cpp
-    src/utils.cpp
+	src/drum_controller.cpp
+	src/drum_track_model.cpp
+	src/presets.cpp
+	src/drum_packs_manager.cpp
+	src/drum_pack.cpp
+	src/utils.cpp
 )
+
 target_include_directories(drum_controller PUBLIC ${CMAKE_SOURCE_DIR}/src)
+
+target_include_directories(DrumMachine PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 #stb
 target_include_directories(DrumMachine PRIVATE ${CMAKE_SOURCE_DIR}/external/stb_image)
@@ -57,6 +68,5 @@ target_link_libraries(drum_controller PUBLIC nlohmann_json)
 target_link_libraries(DrumMachine PRIVATE drum_controller imgui glfw OpenGL::GL nlohmann_json)
 
 if(WIN32)
-	# On Windows also link to winmm and ensure drum_controller is linked
-	target_link_libraries(DrumMachine PRIVATE winmm drum_controller imgui glfw OpenGL::GL)
+	target_link_libraries(DrumMachine PRIVATE winmm)
 endif()
