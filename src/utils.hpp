@@ -28,6 +28,23 @@ namespace FileValidation
     bool isValidAudioExtension(const std::string &extension);
 }
 
+namespace FileUtils
+{
+    struct SampleFolder
+    {
+        std::string name;
+        std::vector<std::filesystem::path> samples;
+    };
+
+    struct SampleDirectoryStructure
+    {
+        std::vector<SampleFolder> folders;
+        std::vector<std::filesystem::path> root_samples;
+    };
+
+    SampleDirectoryStructure getSamplesDirectoryStructure(const std::filesystem::path &root);
+}
+
 namespace PathUtils
 {
     inline std::string extractSampleName(const std::filesystem::path &path)

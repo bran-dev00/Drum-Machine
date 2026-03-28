@@ -91,3 +91,47 @@ std::vector<std::filesystem::path> FileValidation::validateFile(const std::files
 
     return result;
 }
+
+FileUtils::SampleDirectoryStructure FileUtils::getSamplesDirectoryStructure(const std::filesystem::path &root)
+{
+    SampleDirectoryStructure result;
+
+    if (!std::filesystem::is_directory(root))
+    {
+        return result;
+    }
+
+    for (const auto &entry : std::filesystem::directory_iterator(root))
+    {
+        if (entry.is_directory())
+        {
+            SampleFolder folder;
+            folder.name = entry.path().filename().string();
+            for (const auto &file : std::filesystem::directory_iterator(entry.path()))
+            {
+                if (file.is_regular_file() && file.path().has_extension())
+                {
+                    std::string ext = file.path().extension().string();
+                    if (FileValidation::isValidAudioExtension(ext))
+                    {
+                        folder.samples.push_back(file.path());
+                    }
+                }
+            }
+            if (!folder.samples.empty())
+            {
+                result.folders.push_back(std::move(folder));
+            }
+        }
+        else if (entry.is_regular_file() && entry.path().has_extension())
+        {
+            std::string ext = entry.path().extension().string();
+            if (FileValidation::isValidAudioExtension(ext))
+            {
+                result.root_samples.push_back(entry.path());
+            }
+        }
+    }
+
+    return result;
+}

@@ -80,7 +80,14 @@ void DrumViewMenu::drawDrumPackCreationMenu()
 {
     if (ImGui::Selectable("Create New Drum Pack"))
     {
-        std::cout << "pressed\n";
+        sample_structure_ = FileUtils::getSamplesDirectoryStructure("assets/samples");
+        root_sample_selections_.clear();
+        folder_selections_.clear();
+        for (const auto &sample : sample_structure_.root_samples)
+        {
+            root_sample_selections_[sample.filename().string()] = false;
+        }
+        open_create_drum_pack_modal_ = true;
     }
 }
 
@@ -395,6 +402,140 @@ void DrumViewMenu::drawCopyCompletionModal()
     }
 }
 
+void DrumViewMenu::drawCreateDrumPackModal()
+{
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(500, 450), ImGuiCond_Appearing);
+
+    if (ImGui::BeginPopupModal("CreateDrumPack", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("Drum Pack Name:");
+        static char pack_name_buffer[64] = "New Drum Pack";
+        ImGui::InputText("##PackName", pack_name_buffer, sizeof(pack_name_buffer));
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        ImGui::Text("Select Samples:");
+        ImGui::Spacing();
+
+        const float child_height = 280.0f;
+
+        ImGui::BeginChild("SampleList", ImVec2(0, child_height), true);
+
+        if (!sample_structure_.root_samples.empty())
+        {
+            if (ImGui::CollapsingHeader("Root Samples"))
+            {
+                ImGui::Indent();
+                for (const auto &sample : sample_structure_.root_samples)
+                {
+                    std::string sample_name = sample.filename().string();
+                    bool selected = root_sample_selections_[sample_name];
+                    if (ImGui::Checkbox(sample_name.c_str(), &selected))
+                    {
+                        root_sample_selections_[sample_name] = selected;
+                    }
+                }
+                ImGui::Unindent();
+            }
+        }
+
+        for (const auto &folder : sample_structure_.folders)
+        {
+            if (ImGui::CollapsingHeader(folder.name.c_str()))
+            {
+                ImGui::Indent();
+                for (const auto &sample : folder.samples)
+                {
+                    std::string sample_name = sample.filename().string();
+                    bool selected = false;
+                    for (auto &fs : folder_selections_)
+                    {
+                        if (fs.folder_name == folder.name)
+                        {
+                            auto it = fs.sample_selections.find(sample_name);
+                            if (it != fs.sample_selections.end())
+                            {
+                                selected = it->second;
+                            }
+                            break;
+                        }
+                    }
+                    if (ImGui::Checkbox(sample_name.c_str(), &selected))
+                    {
+                        bool found = false;
+                        for (auto &fs : folder_selections_)
+                        {
+                            if (fs.folder_name == folder.name)
+                            {
+                                fs.sample_selections[sample_name] = selected;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found)
+                        {
+                            SampleSelection fs;
+                            fs.folder_name = folder.name;
+                            fs.sample_selections[sample_name] = selected;
+                            folder_selections_.push_back(fs);
+                        }
+                    }
+                }
+                ImGui::Unindent();
+            }
+        }
+
+        ImGui::EndChild();
+
+        ImGui::Spacing();
+
+        int selected_count = 0;
+        for (const auto &pair : root_sample_selections_)
+        {
+            if (pair.second)
+            {
+                selected_count++;
+            }
+        }
+        for (const auto &fs : folder_selections_)
+        {
+            for (const auto &pair : fs.sample_selections)
+            {
+                if (pair.second)
+                {
+
+                    selected_count++;
+                }
+            }
+        }
+
+        ImGui::Text("%d sample(s) selected", selected_count);
+        ImGui::Spacing();
+
+        if (ImGui::Button("Create", ImVec2(120, 0)))
+        {
+            std::cout << "create clicked\n";
+            new_drum_pack_name_ = pack_name_buffer;
+            open_create_drum_pack_modal_ = false;
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+            open_create_drum_pack_modal_ = false;
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
 void DrumViewMenu::drawMenuBar()
 {
     bool open_save_popup = false;
@@ -463,12 +604,18 @@ void DrumViewMenu::drawMenuBar()
         ImGui::OpenPopup("CopyCompletion");
     }
 
+    if (open_create_drum_pack_modal_)
+    {
+        ImGui::OpenPopup("CreateDrumPack");
+    }
+
     drawSavePresetPopup();
     drawAddSamplesModal();
 
     drawCopyProgressModal();
     drawCopyConflictModal();
     drawCopyCompletionModal();
+    drawCreateDrumPackModal();
 
     if (drum_controller_.isCopyingInProgress())
     {
