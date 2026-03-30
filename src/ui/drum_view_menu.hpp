@@ -37,6 +37,7 @@ private:
 
     std::vector<SampleSelection> folder_selections_;
     std::string new_drum_pack_name_;
+    int delete_drum_pack_selected_index_ = 0;
 
 public:
     DrumViewMenu(DrumController &drum_controller) : drum_controller_(drum_controller) {};
@@ -48,6 +49,7 @@ public:
 
     void drawDrumPackSelectionMenu();
     void drawDrumPackCreationMenu();
+    void drawDeleteDrumPackSubMenu();
     void drawFileMenu();
     void drawPresetsMenu();
     void drawDeleteSubMenu();

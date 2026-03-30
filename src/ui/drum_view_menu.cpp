@@ -55,23 +55,23 @@ void DrumViewMenu::onFilesDropped(int count, const char **paths)
 
 void DrumViewMenu::drawDrumPackSelectionMenu()
 {
-    std::string curr_drum_pack = PathUtils::extractDirName(drum_controller_.getCurrDrumPack());
+    std::string curr_drum_pack = drum_controller_.getCurrDrumPack();
     std::vector<std::string> drum_packs = drum_controller_.getDrumPacks();
 
-    for (size_t i = 0; i < drum_packs.size(); i++)
+    static int selected = 0;
+    int controller_idx = drum_controller_.getDrumPackIdx(curr_drum_pack);
+    if (controller_idx >= 0 && controller_idx < static_cast<int>(drum_packs.size()))
     {
-        std::string d_name = PathUtils::extractDirName(drum_packs.at(i));
-        drum_packs.at(i) = d_name;
+        selected = controller_idx;
     }
 
-    static int selected = 0;
     for (size_t i = 0; i < drum_packs.size(); i++)
     {
         std::string name = drum_packs.at(i);
-        if (ImGui::Selectable(name.c_str(), selected == i))
+        if (ImGui::Selectable(name.c_str(), selected == static_cast<int>(i)))
         {
-            selected = i;
-            drum_controller_.setDrumPack(i);
+            selected = static_cast<int>(i);
+            drum_controller_.setDrumPack(static_cast<int>(i));
         }
     }
 }
@@ -88,6 +88,63 @@ void DrumViewMenu::drawDrumPackCreationMenu()
             root_sample_selections_[sample.filename().string()] = false;
         }
         open_create_drum_pack_modal_ = true;
+    }
+}
+
+void DrumViewMenu::drawDeleteDrumPackSubMenu()
+{
+    auto drum_packs = drum_controller_.getDrumPacks();
+
+    if (delete_drum_pack_selected_index_ >= static_cast<int>(drum_packs.size()))
+    {
+        delete_drum_pack_selected_index_ = 0;
+    }
+
+    for (size_t i = 0; i < drum_packs.size(); i++)
+    {
+        std::string name = drum_packs.at(i);
+        if (ImGui::Selectable(name.c_str(), delete_drum_pack_selected_index_ == static_cast<int>(i),
+                              ImGuiSelectableFlags_DontClosePopups))
+        {
+            delete_drum_pack_selected_index_ = static_cast<int>(i);
+        }
+    }
+
+    ImGui::Separator();
+
+    if (drum_packs.empty())
+    {
+        ImGui::TextDisabled("No drum packs to delete");
+    }
+    else
+    {
+        if (ImGui::Button("Delete Selected Drum Pack"))
+        {
+            ImGui::OpenPopup("ConfirmDeleteDrumPack");
+        }
+    }
+
+    // Confirmation Modal
+    if (ImGui::BeginPopupModal("ConfirmDeleteDrumPack", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("Delete \"%s\"?", drum_packs.at(delete_drum_pack_selected_index_).c_str());
+        ImGui::Spacing();
+
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Delete", ImVec2(120, 0)))
+        {
+            drum_controller_.deleteDrumPack(delete_drum_pack_selected_index_);
+            delete_drum_pack_selected_index_ = 0;
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
     }
 }
 
@@ -601,6 +658,15 @@ void DrumViewMenu::drawMenuBar()
 
             ImGui::MenuItem("Create New Kit", NULL, false, false);
             drawDrumPackCreationMenu();
+
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Remove Drum Packs"))
+            {
+                ImGui::MenuItem("Remove Drum Packs", NULL, false, false);
+                drawDeleteDrumPackSubMenu();
+                ImGui::EndMenu();
+            }
 
             ImGui::EndMenu();
         }

@@ -444,6 +444,32 @@ std::filesystem::path DrumController::getSamplesRootDir()
     return samples_root_dir_;
 }
 
+void DrumController::deleteDrumPack(int index)
+{
+    if (index < 0 || index >= static_cast<int>(drum_packs_.size()))
+    {
+        return;
+    }
+
+    drum_pack_manager_.deleteDrumPack(drum_packs_.at(index));
+
+    scanDrumPacks();
+
+    if (drum_packs_.empty())
+    {
+        curr_drum_pack_index_ = -1;
+    }
+    else
+    {
+        if (index >= static_cast<int>(drum_packs_.size()))
+        {
+            index = static_cast<int>(drum_packs_.size()) - 1;
+        }
+        curr_drum_pack_index_ = index;
+        setDrumPack(index);
+    }
+}
+
 void DrumController::loadPreset(Preset preset)
 {
     setBpm(preset.getPresetBpm());
