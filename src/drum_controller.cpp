@@ -411,6 +411,39 @@ std::vector<std::string> DrumController::getDrumPacks()
     return names;
 }
 
+void DrumController::addDrumPack(std::string name, std::array<std::filesystem::path, NUM_TRACKS> samples)
+{
+    int new_id = 0;
+    if (!drum_packs_.empty())
+    {
+        int max_id = 0;
+        for (const auto &pack : drum_packs_)
+        {
+            if (pack.id > max_id)
+            {
+                max_id = pack.id;
+            }
+        }
+        new_id = max_id + 1;
+    }
+
+    DrumPack new_pack = drum_pack_manager_.createDrumPack(new_id, name, samples);
+    drum_pack_manager_.saveDrumPack(new_pack);
+
+    scanDrumPacks();
+
+    int new_pack_index = getDrumPackIdx(name);
+    if (new_pack_index >= 0)
+    {
+        setDrumPack(new_pack_index);
+    }
+}
+
+std::filesystem::path DrumController::getSamplesRootDir()
+{
+    return samples_root_dir_;
+}
+
 void DrumController::loadPreset(Preset preset)
 {
     setBpm(preset.getPresetBpm());

@@ -31,7 +31,7 @@ build/*
 imgui.ini
 
 # save files
-data/*.json
+data/drum-kits/*.json
 data/presets/*.json
 data/main_session/*.json
 
