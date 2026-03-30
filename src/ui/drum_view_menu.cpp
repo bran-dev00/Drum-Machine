@@ -421,6 +421,25 @@ void DrumViewMenu::drawCreateDrumPackModal()
         ImGui::Text("Select Samples:");
         ImGui::Spacing();
 
+        int selected_count = 0;
+        for (const auto &pair : root_sample_selections_)
+        {
+            if (pair.second)
+            {
+                selected_count++;
+            }
+        }
+        for (const auto &fs : folder_selections_)
+        {
+            for (const auto &pair : fs.sample_selections)
+            {
+                if (pair.second)
+                {
+                    selected_count++;
+                }
+            }
+        }
+
         const float child_height = 280.0f;
 
         ImGui::BeginChild("SampleList", ImVec2(0, child_height), true);
@@ -435,10 +454,12 @@ void DrumViewMenu::drawCreateDrumPackModal()
                     std::string sample_name = sample.filename().string();
                     bool selected = root_sample_selections_[sample_name];
 
+                    ImGui::BeginDisabled(selected_count >= NUM_TRACKS && !selected);
                     if (ImGui::Checkbox(sample_name.c_str(), &selected))
                     {
                         root_sample_selections_[sample_name] = selected;
                     }
+                    ImGui::EndDisabled();
                 }
                 ImGui::Unindent();
             }
@@ -470,6 +491,7 @@ void DrumViewMenu::drawCreateDrumPackModal()
                     std::string id = folder.name + "_" + sample_name;
                     ImGui::PushID(id.c_str());
 
+                    ImGui::BeginDisabled(selected_count >= NUM_TRACKS && !selected);
                     if (ImGui::Checkbox(sample_name.c_str(), &selected))
                     {
                         bool found = false;
@@ -490,6 +512,7 @@ void DrumViewMenu::drawCreateDrumPackModal()
                             folder_selections_.push_back(fs);
                         }
                     }
+                    ImGui::EndDisabled();
                     ImGui::PopID();
                 }
                 ImGui::Unindent();
@@ -501,16 +524,16 @@ void DrumViewMenu::drawCreateDrumPackModal()
         ImGui::Spacing();
 
         std::array<std::filesystem::path, NUM_TRACKS> selected_samples;
-        int selected_count = 0;
+        int sample_idx = 0;
 
         std::filesystem::path samples_root = drum_controller_.getSamplesRootDir();
 
         for (const auto &pair : root_sample_selections_)
         {
-            if (pair.second && selected_count < NUM_TRACKS)
+            if (pair.second && sample_idx < NUM_TRACKS)
             {
-                selected_samples.at(selected_count) = samples_root / pair.first;
-                selected_count++;
+                selected_samples.at(sample_idx) = samples_root / pair.first;
+                sample_idx++;
             }
         }
 
@@ -518,15 +541,16 @@ void DrumViewMenu::drawCreateDrumPackModal()
         {
             for (const auto &pair : fs.sample_selections)
             {
-                if (pair.second && selected_count < NUM_TRACKS)
+                if (pair.second && sample_idx < NUM_TRACKS)
                 {
-                    selected_samples.at(selected_count) = samples_root / fs.folder_name / pair.first;
-                    selected_count++;
+                    selected_samples.at(sample_idx) = samples_root / fs.folder_name / pair.first;
+                    sample_idx++;
                 }
             }
         }
 
-        for (int i = selected_count; i < NUM_TRACKS; i++)
+        // Fill remaining with empty paths if less than NUM_TRACKS selected
+        for (int i = sample_idx; i < NUM_TRACKS; i++)
         {
             selected_samples.at(i) = std::filesystem::path();
         }
