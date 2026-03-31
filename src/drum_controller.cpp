@@ -609,6 +609,23 @@ DrumTrackModel &DrumController::getTrackByIndex(int index)
     return tracks_.at(index);
 }
 
+void DrumController::swapTracks(int index1, int index2)
+{
+    if (index1 < 0 || index1 >= NUM_TRACKS || index2 < 0 || index2 >= NUM_TRACKS)
+    {
+        return;
+    }
+
+    if (index1 == index2)
+    {
+        return;
+    }
+
+    std::swap(tracks_.at(index1), tracks_.at(index2));
+    std::swap(sounds_.at(index1), sounds_.at(index2));
+    std::swap(sound_initialized_.at(index1), sound_initialized_.at(index2));
+}
+
 // Main Session File Saving
 void DrumController::saveSession(Preset preset)
 {

@@ -110,6 +110,7 @@ public:
 
     std::array<DrumTrackModel, NUM_TRACKS> &getTracks();
     DrumTrackModel &getTrackByIndex(int index);
+    void swapTracks(int index1, int index2);
 
     int &getBeatCounter();
     bool getIsPlaying();
