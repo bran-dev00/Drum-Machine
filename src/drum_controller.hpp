@@ -44,7 +44,7 @@ private:
 
     std::chrono::time_point<std::chrono::steady_clock> lastStep_;
 
-    std::vector<std::string> samples_paths_;
+    std::vector<std::filesystem::path> samples_paths_;
     std::array<ma_sound *, NUM_TRACKS> sounds_;
     std::array<bool, NUM_TRACKS> sound_initialized_;
 

@@ -1,6 +1,6 @@
 #include "drum_track_model.hpp"
 
-DrumTrackModel::DrumTrackModel(const std::string &name, const std::string &samplePath) : samplePath_(samplePath), name_(name)
+DrumTrackModel::DrumTrackModel(const std::string &name, const std::filesystem::path &samplePath) : samplePath_(samplePath), name_(name)
 {
     sequencer_.fill(false);
 }
@@ -17,7 +17,7 @@ std::string DrumTrackModel::getName()
     return name_;
 }
 
-std::string DrumTrackModel::getSample()
+std::filesystem::path DrumTrackModel::getSample()
 {
     return samplePath_;
 }
@@ -32,7 +32,7 @@ void DrumTrackModel::setName(std::string &newName)
     name_ = newName;
 }
 
-void DrumTrackModel::setSample(std::string &samplePath)
+void DrumTrackModel::setSample(std::filesystem::path &samplePath)
 {
     samplePath_ = samplePath;
 }

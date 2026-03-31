@@ -78,8 +78,7 @@ void DrumController::loadSamples(const std::string sample_path)
 
     for (const auto &entry : std::filesystem::directory_iterator(sample_path))
     {
-        std::string file_name = entry.path().string();
-        samples_paths_.push_back(file_name);
+        samples_paths_.push_back(entry.path());
     }
 }
 
@@ -98,7 +97,7 @@ void DrumController::loadInitialSamples()
     {
         if (!path.empty())
         {
-            samples_paths_.push_back(path.string());
+            samples_paths_.push_back(path);
         }
     }
 }
@@ -209,7 +208,7 @@ void DrumController::initSequencer()
             track_name = PathUtils::extractSampleName(samples_paths_[i]);
             tracks_[i] = DrumTrackModel(track_name, samples_paths_[i]);
 
-            if (ma_sound_init_from_file(&engine_, samples_paths_[i].c_str(), MA_SOUND_FLAG_DECODE, NULL, NULL, sounds_[i]) == MA_SUCCESS)
+            if (ma_sound_init_from_file(&engine_, samples_paths_[i].string().c_str(), MA_SOUND_FLAG_DECODE, NULL, NULL, sounds_[i]) == MA_SUCCESS)
             {
                 sound_initialized_[i] = true;
             }
@@ -221,7 +220,7 @@ void DrumController::initSequencer()
         else
         {
             // No sample for this track index, creates an empty track
-            tracks_[i] = DrumTrackModel("", "");
+            tracks_[i] = DrumTrackModel("", std::filesystem::path());
             sound_initialized_[i] = false;
         }
     }
@@ -267,7 +266,6 @@ void DrumController::step()
         {
             auto &track = tracks_[i];
             auto sequencer = track.getTrackSequencer();
-            auto sample = track.getSample();
 
             if (sequencer.at(beatCounter_) == true && !sequencer.empty())
             {
@@ -380,7 +378,7 @@ void DrumController::setDrumPack(int index)
     {
         if (!path.empty())
         {
-            samples_paths_.push_back(path.string());
+            samples_paths_.push_back(path);
         }
     }
 

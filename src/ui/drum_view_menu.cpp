@@ -160,6 +160,11 @@ void DrumViewMenu::drawFileMenu()
     {
         open_add_samples_modal_ = true;
     }
+
+    if (ImGui::MenuItem("Rearrange Tracks", NULL, false, true))
+    {
+        open_rearrange_tracks_modal_ = true;
+    }
 }
 
 void DrumViewMenu::drawPresetsMenu()
@@ -638,6 +643,39 @@ void DrumViewMenu::drawCreateDrumPackModal()
     }
 }
 
+void DrumViewMenu::drawRearrangeTracksModal()
+{
+
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(500, 450), ImGuiCond_Appearing);
+
+    if (ImGui::BeginPopupModal("Rearrange Tracks", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("RearrangeTracks");
+
+        ImGui::BeginListBox("##RearrangeTracks", ImVec2(0, 300));
+        auto old_tracks = drum_controller_.getTracks();
+        static int selected = -1;
+        for (size_t i = 0; i < old_tracks.size(); i++)
+        {
+            ImGui::PushID(static_cast<int>(i));
+            std::string track_name = old_tracks.at(i).getName();
+            std::filesystem::path sample_path = old_tracks.at(i).getSample();
+
+            if (ImGui::Selectable(track_name.c_str(), selected == static_cast<int>(i)))
+            {
+                selected = static_cast<int>(i);
+            }
+            ImGui::PopID();
+        }
+
+        ImGui::EndListBox();
+
+        ImGui::EndPopup();
+    }
+}
+
 void DrumViewMenu::drawMenuBar()
 {
     bool open_save_popup = false;
@@ -720,9 +758,14 @@ void DrumViewMenu::drawMenuBar()
         ImGui::OpenPopup("CreateDrumPack");
     }
 
+    if (open_rearrange_tracks_modal_)
+    {
+        ImGui::OpenPopup("Rearrange Tracks");
+    }
+
     drawSavePresetPopup();
     drawAddSamplesModal();
-
+    drawRearrangeTracksModal();
     drawCopyProgressModal();
     drawCopyConflictModal();
     drawCopyCompletionModal();
