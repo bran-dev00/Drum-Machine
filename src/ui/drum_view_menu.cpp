@@ -665,7 +665,7 @@ void DrumViewMenu::drawRearrangeTracksModal()
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
             {
                 ImGui::SetDragDropPayload("TRACK_INDEX", &i, sizeof(int));
-                ImGui::Text("%d", i);
+                ImGui::Text("%s", track_name.c_str());
                 ImGui::EndDragDropSource();
             }
 
