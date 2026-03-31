@@ -25,6 +25,7 @@ private:
     bool open_copy_progress_modal_ = false;
     bool open_copy_completion_modal_ = false;
     bool open_create_drum_pack_modal_ = false;
+    bool open_rearrange_tracks_modal_ = false;
 
     static char rename_input_buffer_[256];
 
@@ -55,6 +56,7 @@ public:
     void drawDeleteSubMenu();
     void drawSavePresetPopup();
 
+    void drawRearrangeTracksModal();
     void drawAddSamplesModal();
     void drawCopyConflictModal();
     void drawCopyProgressModal();

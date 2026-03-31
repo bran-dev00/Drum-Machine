@@ -160,6 +160,11 @@ void DrumViewMenu::drawFileMenu()
     {
         open_add_samples_modal_ = true;
     }
+
+    if (ImGui::MenuItem("Rearrange Tracks", NULL, false, true))
+    {
+        open_rearrange_tracks_modal_ = true;
+    }
 }
 
 void DrumViewMenu::drawPresetsMenu()
@@ -638,6 +643,65 @@ void DrumViewMenu::drawCreateDrumPackModal()
     }
 }
 
+void DrumViewMenu::drawRearrangeTracksModal()
+{
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(500, 450), ImGuiCond_Appearing);
+
+    if (ImGui::BeginPopupModal("Rearrange Tracks", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("Drag tracks to reorder");
+
+        ImGui::BeginListBox("##RearrangeTracks", ImVec2(0, 300));
+        auto tracks = drum_controller_.getTracks();
+
+        for (int i = 0; i < tracks.size(); i++)
+        {
+            ImGui::PushID(i);
+            std::string track_name = tracks.at(i).getName();
+
+            ImGui::Selectable(track_name.c_str(), false);
+            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+            {
+                ImGui::SetDragDropPayload("TRACK_INDEX", &i, sizeof(int));
+                ImGui::Text("%s", track_name.c_str());
+                ImGui::EndDragDropSource();
+            }
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("TRACK_INDEX"))
+                {
+                    IM_ASSERT(payload->DataSize == sizeof(int));
+                    int src_idx = *(const int *)payload->Data;
+                    int dst_idx = i;
+
+                    if (src_idx != dst_idx)
+                    {
+                        drum_controller_.swapTracks(src_idx, dst_idx);
+                        // refresh local copy of tracks after swap
+                        tracks = drum_controller_.getTracks();
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            ImGui::PopID();
+        }
+
+        ImGui::EndListBox();
+
+        if (ImGui::Button("Done"))
+        {
+            open_rearrange_tracks_modal_ = false;
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
 void DrumViewMenu::drawMenuBar()
 {
     bool open_save_popup = false;
@@ -720,9 +784,14 @@ void DrumViewMenu::drawMenuBar()
         ImGui::OpenPopup("CreateDrumPack");
     }
 
+    if (open_rearrange_tracks_modal_)
+    {
+        ImGui::OpenPopup("Rearrange Tracks");
+    }
+
     drawSavePresetPopup();
     drawAddSamplesModal();
-
+    drawRearrangeTracksModal();
     drawCopyProgressModal();
     drawCopyConflictModal();
     drawCopyCompletionModal();
