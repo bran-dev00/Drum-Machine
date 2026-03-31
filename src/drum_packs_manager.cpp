@@ -32,6 +32,15 @@ void DrumPackManager::saveDrumPack(const DrumPack &drum_pack)
     }
 }
 
+void DrumPackManager::deleteDrumPack(const DrumPack &drum_pack)
+{
+    auto file_path = save_data_path_ / (StringUtils::toSnakeCase(drum_pack.name) + ".json");
+    if (std::filesystem::exists(file_path))
+    {
+        std::filesystem::remove(file_path);
+    }
+}
+
 std::vector<DrumPack> DrumPackManager::loadDrumPacks() const
 {
     std::vector<DrumPack> packs;

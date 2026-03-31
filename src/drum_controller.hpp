@@ -129,6 +129,9 @@ public:
     std::string getCurrDrumPack();
     std::vector<std::string> getDrumPacks();
     int getDrumPackIdx(std::string drum_pack_name);
+    void addDrumPack(std::string name, std::array<std::filesystem::path, NUM_TRACKS> samples);
+    void deleteDrumPack(int index);
+    std::filesystem::path getSamplesRootDir();
 
     // Presets
     void scanPresets();

@@ -17,6 +17,8 @@ public:
 
     void saveDrumPack(const DrumPack &drum_pack);
 
+    void deleteDrumPack(const DrumPack &drum_pack);
+
     // Load all drum packs from JSON files in save_data_path_
     std::vector<DrumPack> loadDrumPacks() const;
 
