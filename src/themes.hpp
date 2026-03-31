@@ -22,6 +22,11 @@ static void setCustomTheme()
     ImColor slider_grab_color = ImColor(226, 239, 255, 255);
 
     ImColor menu_bar_bg_color = ImColor(30, 50, 123, 255);
+    ImColor popup_bg_color = ImColor(20, 35, 90, 255);
+    ImColor header_color = ImColor(40, 70, 150, 255);
+    ImColor header_hovered_color = ImColor(60, 100, 180, 255);
+    ImColor header_active_color = ImColor(71, 102, 232, 255);
+    ImColor modal_bg_color = ImColor(0, 0, 0, 180);
 
     colors[ImGuiCol_WindowBg] = window_bg_color;
     colors[ImGuiCol_FrameBg] = frame_bg_color;
@@ -39,4 +44,9 @@ static void setCustomTheme()
     colors[ImGuiCol_MenuBarBg] = menu_bar_bg_color;
     colors[ImGuiCol_TitleBg] = menu_bar_bg_color;
     colors[ImGuiCol_TitleBgActive] = menu_bar_bg_color;
+    colors[ImGuiCol_PopupBg] = popup_bg_color;
+    colors[ImGuiCol_Header] = header_color;
+    colors[ImGuiCol_HeaderHovered] = header_hovered_color;
+    colors[ImGuiCol_HeaderActive] = header_active_color;
+    colors[ImGuiCol_ModalWindowDimBg] = modal_bg_color;
 }

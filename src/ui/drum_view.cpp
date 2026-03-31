@@ -1,9 +1,9 @@
 #include "drum_view.hpp"
 #include <imgui_internal.h>
 
-DrumView::DrumView(DrumController &controller) 
-    : drum_controller_(controller), 
-      drum_view_controls_(controller), 
+DrumView::DrumView(DrumController &controller)
+    : drum_controller_(controller),
+      drum_view_controls_(controller),
       drum_view_tracks_(controller),
       drum_view_menu_(controller)
 {
