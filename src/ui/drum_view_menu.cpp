@@ -204,18 +204,46 @@ void DrumViewMenu::drawDeleteSubMenu()
     }
 }
 
-void DrumViewMenu::drawSavePresetPopup()
+void DrumViewMenu::drawSavePresetModal()
 {
-    if (ImGui::BeginPopup("SavePresetPopup"))
+
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("SavePreset", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        static char preset_name[64] = "New Preset";
-        ImGui::InputText("Preset Name", preset_name, sizeof(preset_name));
+
+        static char preset_name[64];
+        ImGui::Spacing();
+        ImGui::InputTextWithHint("##PresetName", "Preset Name", preset_name, sizeof(preset_name));
+        ImGui::Spacing();
 
         Preset new_preset = savedCurrentPreset(preset_name);
 
-        if (ImGui::Button("Save Preset"))
+        ImGui::Spacing();
+
+        if (preset_name[0] == '\0')
+        {
+            ImGui::BeginDisabled();
+        }
+        if (ImGui::Button("Save Preset", ImVec2(120, 0)))
         {
             drum_controller_.addPreset(new_preset);
+            open_save_preset_modal_ = false;
+            preset_name[0] = '\0';
+            ImGui::CloseCurrentPopup();
+        }
+        if (preset_name[0] == '\0')
+        {
+            ImGui::EndDisabled();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+        {
+            open_save_preset_modal_ = false;
+            preset_name[0] = '\0';
             ImGui::CloseCurrentPopup();
         }
 
@@ -704,20 +732,16 @@ void DrumViewMenu::drawRearrangeTracksModal()
 
 void DrumViewMenu::drawMenuBar()
 {
-    bool open_save_popup = false;
-
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
         {
-            ImGui::MenuItem("File", NULL, false, false);
             drawFileMenu();
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Drum Packs"))
         {
-            ImGui::MenuItem("Drum Packs", NULL, false, false);
             drawDrumPackSelectionMenu();
 
             ImGui::MenuItem("Create New Kit", NULL, false, false);
@@ -727,7 +751,6 @@ void DrumViewMenu::drawMenuBar()
 
             if (ImGui::BeginMenu("Remove Drum Packs"))
             {
-                ImGui::MenuItem("Remove Drum Packs", NULL, false, false);
                 drawDeleteDrumPackSubMenu();
                 ImGui::EndMenu();
             }
@@ -737,19 +760,17 @@ void DrumViewMenu::drawMenuBar()
 
         if (ImGui::BeginMenu("Presets"))
         {
-            ImGui::MenuItem("Presets", NULL, false, false);
             drawPresetsMenu();
             ImGui::NewLine();
             ImGui::Separator();
 
             if (ImGui::MenuItem("Save Current as Preset", NULL, false, true))
             {
-                open_save_popup = true;
+                open_save_preset_modal_ = true;
             }
 
             if (ImGui::BeginMenu("Remove Presets"))
             {
-                ImGui::MenuItem("Remove Presets", NULL, false, false);
                 drawDeleteSubMenu();
                 ImGui::EndMenu();
             }
@@ -759,9 +780,9 @@ void DrumViewMenu::drawMenuBar()
         ImGui::EndMainMenuBar();
     }
 
-    if (open_save_popup)
+    if (open_save_preset_modal_)
     {
-        ImGui::OpenPopup("SavePresetPopup");
+        ImGui::OpenPopup("SavePreset");
     }
 
     if (open_add_samples_modal_)
@@ -789,7 +810,7 @@ void DrumViewMenu::drawMenuBar()
         ImGui::OpenPopup("Rearrange Tracks");
     }
 
-    drawSavePresetPopup();
+    drawSavePresetModal();
     drawAddSamplesModal();
     drawRearrangeTracksModal();
     drawCopyProgressModal();
