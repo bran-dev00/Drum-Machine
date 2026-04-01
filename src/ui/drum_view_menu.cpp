@@ -681,6 +681,9 @@ void DrumViewMenu::drawRearrangeTracksModal()
     {
         ImGui::Text("Drag tracks to reorder");
 
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.137f, 0.216f, 0.333f, 1.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 6.0f));
+
         ImGui::BeginListBox("##RearrangeTracks", ImVec2(0, 300));
         auto tracks = drum_controller_.getTracks();
 
@@ -689,7 +692,14 @@ void DrumViewMenu::drawRearrangeTracksModal()
             ImGui::PushID(i);
             std::string track_name = tracks.at(i).getName();
 
+            ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.102f, 0.165f, 0.278f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.137f, 0.216f, 0.333f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.071f, 0.102f, 0.176f, 1.0f));
+
             ImGui::Selectable(track_name.c_str(), false);
+
+            ImGui::PopStyleColor(3);
+
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
             {
                 ImGui::SetDragDropPayload("TRACK_INDEX", &i, sizeof(int));
@@ -719,6 +729,9 @@ void DrumViewMenu::drawRearrangeTracksModal()
         }
 
         ImGui::EndListBox();
+
+        ImGui::PopStyleVar();
+        ImGui::PopStyleColor();
 
         if (ImGui::Button("Done"))
         {
