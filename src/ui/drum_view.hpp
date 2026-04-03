@@ -14,8 +14,8 @@
 #include "ui/drum_view_tracks.hpp"
 #include "ui/drum_view_menu.hpp"
 
-#define SCR_SM 800
-#define SCR_MD 1024
+#define SCR_SM 1200
+#define SCR_MD 1600
 #define SCR_LG 1440
 #define SCR_XL 1920
 #define SCR_XXL 2560

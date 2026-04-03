@@ -4,6 +4,7 @@ void DrumViewControls::drawControls(float start_x)
 {
     int bpm = drum_controller_.getBpm();
     float volume = drum_controller_.getMasterVolume();
+    float scale = DrumViewUtils::getScaleFactor(ImGui::GetWindowSize().x);
 
     ImGui::SetCursorPosX(start_x);
     drawTogglePlayButton();

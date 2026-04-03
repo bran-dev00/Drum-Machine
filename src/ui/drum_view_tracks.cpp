@@ -83,8 +83,9 @@ void DrumViewTracks::drawTracks(float width)
 
     drawBeatIndicator(width);
 
-    ImGui::BeginChild("Tracks", ImVec2(width - 40.0f, 0), false, ImGuiWindowFlags_NoScrollbar);
+    ImGui::BeginChild("Tracks", ImVec2(width, 0), false, ImGuiWindowFlags_NoScrollbar);
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.0f);
+
     for (int i = 0; i < NUM_TRACKS; ++i)
     {
         ma_sound *sound = drum_controller_.getSound(i);
@@ -113,7 +114,7 @@ void DrumViewTracks::drawTracks(float width)
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + vertical_offset + checkbox_size);
 
         // volume slider width
-        ImGui::PushItemWidth(80.0f * scale);
+        ImGui::PushItemWidth((std::max)(100.0f * scale, 150.0f));
         DrumViewUtils::drawCustomVolumeSlider("Volume", i, track_volumes.at(i), -40, 10, drum_controller_);
         ImGui::PopItemWidth();
 

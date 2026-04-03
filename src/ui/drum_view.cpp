@@ -69,13 +69,18 @@ void DrumView::draw()
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
     ImGui::Begin("Drum Machine", NULL, window_flags);
+
     drum_view_menu_.drawMenuBar();
+
+    // DrumViewUtils::drawDebug();
 
     float partition_size = getPartitionSize();
 
     float start_x = partition_size;
     float end_x = partition_size;
 
+    // start_x is the left edge of the main container
+    // end_x is the how many partition sizes the main container spans
     if (display.x > 0 && display.x <= SCR_SM)
     {
         start_x = partition_size;
