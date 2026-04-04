@@ -4,6 +4,7 @@ void DrumViewControls::drawControls(float start_x)
 {
     int bpm = drum_controller_.getBpm();
     float volume = drum_controller_.getMasterVolume();
+    float scale = DrumViewUtils::getScaleFactor(ImGui::GetWindowSize().x);
 
     ImGui::SetCursorPosX(start_x);
     drawTogglePlayButton();
@@ -69,9 +70,12 @@ void DrumViewControls::drawTogglePlayButton()
 
     ImGui::PushItemWidth(100.0f * scale);
     std::string playing_status = drum_controller_.getIsPlaying() ? "Pause" : "Play";
+
+    ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
     if (ImGui::Button(playing_status.c_str()))
     {
         drum_controller_.toggleSequencer();
     }
+    ImGui::PopStyleColor();
     ImGui::PopItemWidth();
 }

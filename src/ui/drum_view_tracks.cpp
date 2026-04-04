@@ -2,10 +2,12 @@
 
 void DrumViewTracks::drawResetAllButton()
 {
+    ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
     if (ImGui::Button("Reset All"))
     {
         drum_controller_.resetAllTracks();
     }
+    ImGui::PopStyleColor();
 }
 
 void DrumViewTracks::drawBeatIndicator(float width)
@@ -84,6 +86,8 @@ void DrumViewTracks::drawTracks(float width)
     drawBeatIndicator(width);
 
     ImGui::BeginChild("Tracks", ImVec2(width, 0), false, ImGuiWindowFlags_NoScrollbar);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.0f);
+
     for (int i = 0; i < NUM_TRACKS; ++i)
     {
         ma_sound *sound = drum_controller_.getSound(i);
@@ -99,10 +103,12 @@ void DrumViewTracks::drawTracks(float width)
         drawTrack(i, track, checkbox_positions, checkbox_size);
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + checkbox_size - 2.0f);
+        ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Reset"))
         {
             drum_controller_.resetSequencer(track);
         }
+        ImGui::PopStyleColor();
         ImGui::SameLine();
 
         float button_height = ImGui::GetFrameHeight();
@@ -110,7 +116,9 @@ void DrumViewTracks::drawTracks(float width)
         float vertical_offset = (button_height - slider_height) * 0.5f;
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + vertical_offset + checkbox_size);
-        ImGui::PushItemWidth(100.0f * scale);
+
+        // volume slider width
+        ImGui::PushItemWidth((std::max)(100.0f * scale, 150.0f));
         DrumViewUtils::drawCustomVolumeSlider("Volume", i, track_volumes.at(i), -40, 10, drum_controller_);
         ImGui::PopItemWidth();
 
@@ -120,7 +128,8 @@ void DrumViewTracks::drawTracks(float width)
     }
 
     drawBeatCounterLabels(checkbox_positions);
-    ImGui::SameLine(0.0f, 10.0f);
+
+    ImGui::SameLine();
     drawResetAllButton();
     ImGui::EndChild();
 }
