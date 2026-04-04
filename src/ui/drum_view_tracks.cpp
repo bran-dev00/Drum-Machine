@@ -128,7 +128,8 @@ void DrumViewTracks::drawTracks(float width)
     }
 
     drawBeatCounterLabels(checkbox_positions);
-    ImGui::SameLine(0.0f, 10.0f);
+
+    ImGui::SameLine();
     drawResetAllButton();
     ImGui::EndChild();
 }

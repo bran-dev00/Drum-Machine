@@ -228,10 +228,8 @@ void DrumViewMenu::drawSavePresetModal()
 
         ImGui::Spacing();
 
-        if (preset_name[0] == '\0')
-        {
-            ImGui::BeginDisabled();
-        }
+        bool save_disabled = (preset_name[0] == '\0');
+        ImGui::BeginDisabled(save_disabled);
         ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Save Preset", ImVec2(120, 0)))
         {
@@ -240,10 +238,7 @@ void DrumViewMenu::drawSavePresetModal()
             preset_name[0] = '\0';
             ImGui::CloseCurrentPopup();
         }
-        if (preset_name[0] == '\0')
-        {
-            ImGui::EndDisabled();
-        }
+        ImGui::EndDisabled();
 
         ImGui::SameLine();
 
