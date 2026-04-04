@@ -1,5 +1,6 @@
 #pragma once
 #include "drum_controller.hpp"
+#include "ui/drum_view_utils.hpp"
 #include "presets.hpp"
 #include "utils.hpp"
 #include <filesystem>

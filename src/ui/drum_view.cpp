@@ -50,7 +50,7 @@ void DrumView::drawMainContainer(float start_x, float width)
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 3.0f);
 
     ImGui::SetCursorPosX(start_x);
-    ImGui::BeginChild("##MainContainer", ImVec2(width, 0), false, ImGuiChildFlags_FrameStyle);
+    ImGui::BeginChild("##MainContainer", ImVec2(width, 0), false, ImGuiChildFlags_FrameStyle | ImGuiChildFlags_AlwaysUseWindowPadding | ImGuiChildFlags_AutoResizeY);
 
     drawControls(0);
     drum_view_tracks_.drawTracks(width);
@@ -71,6 +71,12 @@ void DrumView::draw()
     ImGui::Begin("Drum Machine", NULL, window_flags);
 
     drum_view_menu_.drawMenuBar();
+
+    // Handle keyboard shortcuts
+    if (ImGui::IsKeyPressed(ImGuiKey_Space))
+    {
+        drum_controller_.toggleSequencer();
+    }
 
     // DrumViewUtils::drawDebug();
 

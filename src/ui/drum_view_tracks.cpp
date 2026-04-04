@@ -2,10 +2,12 @@
 
 void DrumViewTracks::drawResetAllButton()
 {
+    ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
     if (ImGui::Button("Reset All"))
     {
         drum_controller_.resetAllTracks();
     }
+    ImGui::PopStyleColor();
 }
 
 void DrumViewTracks::drawBeatIndicator(float width)
@@ -101,10 +103,12 @@ void DrumViewTracks::drawTracks(float width)
         drawTrack(i, track, checkbox_positions, checkbox_size);
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + checkbox_size - 2.0f);
+        ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Reset"))
         {
             drum_controller_.resetSequencer(track);
         }
+        ImGui::PopStyleColor();
         ImGui::SameLine();
 
         float button_height = ImGui::GetFrameHeight();

@@ -118,10 +118,12 @@ void DrumViewMenu::drawDeleteDrumPackSubMenu()
     }
     else
     {
+        ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Delete Selected Drum Pack"))
         {
             ImGui::OpenPopup("ConfirmDeleteDrumPack");
         }
+        ImGui::PopStyleColor();
     }
 
     // Confirmation Modal
@@ -130,6 +132,7 @@ void DrumViewMenu::drawDeleteDrumPackSubMenu()
         ImGui::Text("Delete \"%s\"?", drum_packs.at(delete_drum_pack_selected_index_).c_str());
         ImGui::Spacing();
 
+        ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Cancel", ImVec2(120, 0)))
         {
             ImGui::CloseCurrentPopup();
@@ -143,6 +146,7 @@ void DrumViewMenu::drawDeleteDrumPackSubMenu()
             delete_drum_pack_selected_index_ = 0;
             ImGui::CloseCurrentPopup();
         }
+        ImGui::PopStyleColor();
 
         ImGui::EndPopup();
     }
@@ -197,11 +201,13 @@ void DrumViewMenu::drawDeleteSubMenu()
         }
     }
 
+    ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
     if (ImGui::Button("Delete Selected Preset"))
     {
         drum_controller_.deletePreset(selected);
         ImGui::CloseCurrentPopup();
     }
+    ImGui::PopStyleColor();
 }
 
 void DrumViewMenu::drawSavePresetModal()
@@ -226,6 +232,7 @@ void DrumViewMenu::drawSavePresetModal()
         {
             ImGui::BeginDisabled();
         }
+        ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Save Preset", ImVec2(120, 0)))
         {
             drum_controller_.addPreset(new_preset);
@@ -246,6 +253,7 @@ void DrumViewMenu::drawSavePresetModal()
             preset_name[0] = '\0';
             ImGui::CloseCurrentPopup();
         }
+        ImGui::PopStyleColor();
 
         ImGui::EndPopup();
     }
@@ -316,6 +324,7 @@ void DrumViewMenu::drawAddSamplesModal()
         }
 
         ImGui::BeginDisabled(files_accepted_.empty());
+        ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Submit"))
         {
             drum_controller_.startCopyQueue(files_accepted_);
@@ -335,6 +344,7 @@ void DrumViewMenu::drawAddSamplesModal()
             ImGui::CloseCurrentPopup();
             open_add_samples_modal_ = false;
         }
+        ImGui::PopStyleColor();
 
         ImGui::EndPopup();
     }
@@ -372,6 +382,7 @@ void DrumViewMenu::drawCopyConflictModal()
 
         ImGui::Spacing();
 
+        ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Skip"))
         {
             drum_controller_.skipCurrentFile();
@@ -409,6 +420,7 @@ void DrumViewMenu::drawCopyConflictModal()
             open_copy_progress_modal_ = false;
             ImGui::CloseCurrentPopup();
         }
+        ImGui::PopStyleColor();
 
         ImGui::EndPopup();
     }
@@ -435,12 +447,14 @@ void DrumViewMenu::drawCopyProgressModal()
         ImGui::Text("%d files remaining", remaining);
         ImGui::Spacing();
 
+        ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Cancel"))
         {
             drum_controller_.finishCopy();
             open_copy_progress_modal_ = false;
             ImGui::CloseCurrentPopup();
         }
+        ImGui::PopStyleColor();
 
         if (has_conflict)
         {
@@ -478,6 +492,7 @@ void DrumViewMenu::drawCopyCompletionModal()
 
         ImGui::Spacing();
 
+        ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Done"))
         {
             open_copy_completion_modal_ = false;
@@ -487,6 +502,7 @@ void DrumViewMenu::drawCopyCompletionModal()
             drum_controller_.finishCopy();
             ImGui::CloseCurrentPopup();
         }
+        ImGui::PopStyleColor();
 
         ImGui::EndPopup();
     }
@@ -650,6 +666,7 @@ void DrumViewMenu::drawCreateDrumPackModal()
 
         bool can_create = selected_count > 0 && strlen(pack_name_buffer) > 0;
 
+        ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Create", ImVec2(120, 0)) && can_create)
         {
             drum_controller_.addDrumPack(pack_name_buffer, selected_samples);
@@ -666,6 +683,7 @@ void DrumViewMenu::drawCreateDrumPackModal()
             ImGui::CloseCurrentPopup();
             open_create_drum_pack_modal_ = false;
         }
+        ImGui::PopStyleColor();
 
         ImGui::EndPopup();
     }
@@ -681,7 +699,6 @@ void DrumViewMenu::drawRearrangeTracksModal()
     {
         ImGui::Text("Drag tracks to reorder");
 
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.137f, 0.216f, 0.333f, 1.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 6.0f));
 
         ImGui::BeginListBox("##RearrangeTracks", ImVec2(0, 300));
@@ -692,13 +709,7 @@ void DrumViewMenu::drawRearrangeTracksModal()
             ImGui::PushID(i);
             std::string track_name = tracks.at(i).getName();
 
-            ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.102f, 0.165f, 0.278f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.137f, 0.216f, 0.333f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.071f, 0.102f, 0.176f, 1.0f));
-
             ImGui::Selectable(track_name.c_str(), false);
-
-            ImGui::PopStyleColor(3);
 
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
             {
@@ -731,13 +742,14 @@ void DrumViewMenu::drawRearrangeTracksModal()
         ImGui::EndListBox();
 
         ImGui::PopStyleVar();
-        ImGui::PopStyleColor();
 
+        ImGui::PushStyleColor(ImGuiCol_Text, DrumViewUtils::BUTTON_TEXT_COLOR);
         if (ImGui::Button("Done"))
         {
             open_rearrange_tracks_modal_ = false;
             ImGui::CloseCurrentPopup();
         }
+        ImGui::PopStyleColor();
 
         ImGui::EndPopup();
     }

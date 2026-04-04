@@ -5,6 +5,8 @@
 
 namespace DrumViewUtils
 {
+    const ImVec4 BUTTON_TEXT_COLOR = ImVec4(20.0f / 255.0f, 20.0f / 255.0f, 40.0f / 255.0f, 1.0f);
+
     inline float getScaleFactor(const float base_width)
     {
         return ImGui::GetIO().DisplaySize.x / base_width;
