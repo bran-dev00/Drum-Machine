@@ -33,6 +33,7 @@ private:
     bool is_playing_;
     int bpm_;
     int beatCounter_;
+    int current_note_duration_mult_ = SIXTEENTH_NOTE_MULT_;
 
     std::string main_session_file_path_;
 
@@ -90,6 +91,9 @@ public:
     void skipCurrentFile();
     void renameAndCopyCurrentFile(std::string new_name);
     void finishCopy();
+
+    void setNoteDuration(NoteDuration duration);
+    int getCurrentNoteDurationMult();
 
     std::string getCurrentCopyingFilename();
     std::string getCurrentConflictFilename();
