@@ -5,3 +5,10 @@
 #define NUM_TRACKS 8
 
 using Track_t = std::array<bool, MAX_STEPS>;
+
+enum class NoteDuration
+{
+    QUARTER,
+    EIGHTH,
+    SIXTEENTH
+};

@@ -258,7 +258,7 @@ void DrumController::step()
     auto now = std::chrono::steady_clock::now();
 
     std::chrono::duration<double> secondsPerBeat(60.0 / bpm_);
-    auto bpmToMs = std::chrono::duration_cast<std::chrono::milliseconds>(secondsPerBeat / SIXTEENTH_NOTE_MULT_);
+    auto bpmToMs = std::chrono::duration_cast<std::chrono::milliseconds>(secondsPerBeat / current_note_duration_mult_);
 
     if (is_playing_ && std::chrono::duration_cast<std::chrono::milliseconds>(now - lastStep_) > bpmToMs)
     {
@@ -483,7 +483,6 @@ std::vector<Preset> DrumController::getPresetsList()
 }
 
 // scan presets directory for preset files and update presets_list accordingly
-// TODO: handle preset file parsing errors, skip invalid files and keep/load the valid ones
 void DrumController::scanPresets()
 {
     std::string presets_dir = (std::filesystem::current_path() / L"data" / L"presets").string();
@@ -498,13 +497,6 @@ void DrumController::scanPresets()
             // Preset preset = Preset::parsePresetFromFile(file_path);
             Preset preset = Preset::loadPresetFromFile(file_path);
             presets_list_.push_back(preset);
-
-            // DEBUG
-            /* for (size_t i = 0; i < presets_list_.size(); i++)
-            {
-                std::cout << "list size: " << presets_list_.size() << "\n";
-                std::cout << "Preset " << i << ": " << presets_list_.at(i).getPresetName() << "\n";
-            } */
         }
     }
 }
@@ -538,6 +530,32 @@ void DrumController::deletePreset(int index)
 
     // update presets_list_
     scanPresets();
+}
+
+// Change
+
+int DrumController::getCurrentNoteDurationMult()
+{
+    return current_note_duration_mult_;
+}
+
+void DrumController::setNoteDuration(NoteDuration duration)
+{
+    switch (duration)
+    {
+    case NoteDuration::QUARTER:
+        current_note_duration_mult_ = QUARTER_NOTE_MULT_;
+        break;
+    case NoteDuration::EIGHTH:
+        current_note_duration_mult_ = EIGHT_NOTE_MULT_;
+        break;
+    case NoteDuration::SIXTEENTH:
+        current_note_duration_mult_ = SIXTEENTH_NOTE_MULT_;
+        break;
+    default:
+        current_note_duration_mult_ = SIXTEENTH_NOTE_MULT_;
+        break;
+    }
 }
 
 void DrumController::setBpm(int bpm)

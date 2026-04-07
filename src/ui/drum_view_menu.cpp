@@ -169,6 +169,24 @@ void DrumViewMenu::drawFileMenu()
     {
         open_rearrange_tracks_modal_ = true;
     }
+
+    int current_mult = drum_controller_.getCurrentNoteDurationMult();
+    if (ImGui::BeginMenu("Change Note Duration"))
+    {
+        if (ImGui::Selectable("Quarter Notes", current_mult == 1))
+        {
+            drum_controller_.setNoteDuration(NoteDuration::QUARTER);
+        }
+        if (ImGui::Selectable("Eighth Notes", current_mult == 2))
+        {
+            drum_controller_.setNoteDuration(NoteDuration::EIGHTH);
+        }
+        if (ImGui::Selectable("Sixteenth Notes", current_mult == 4))
+        {
+            drum_controller_.setNoteDuration(NoteDuration::SIXTEENTH);
+        }
+        ImGui::EndMenu();
+    }
 }
 
 void DrumViewMenu::drawPresetsMenu()

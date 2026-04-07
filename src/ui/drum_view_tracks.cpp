@@ -80,7 +80,6 @@ void DrumViewTracks::drawTracks(float width)
     float font_size = ImGui::GetFontSize();
 
     float checkbox_budget = width * (4.0f / 5.0f);
-
     float checkbox_size = (std::max)(1.0f, (checkbox_budget / MAX_STEPS - font_size - item_spacing) * 0.5f);
 
     drawBeatIndicator(width);
@@ -129,7 +128,7 @@ void DrumViewTracks::drawTracks(float width)
 
     drawBeatCounterLabels(checkbox_positions);
 
-    ImGui::SameLine();
+    ImGui::SameLine(0.0f, (checkbox_size + item_spacing + 1.0f));
     drawResetAllButton();
     ImGui::EndChild();
 }
