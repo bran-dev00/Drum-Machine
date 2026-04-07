@@ -1,6 +1,8 @@
 # Drum-Machine
 
-An 8 track drum machine project written in C++, with miniaudio and dearimgui libraries
+An 8 track drum machine project written in C++ with the miniaudio and dearimgui libraries
+
+<img width="1919" height="1047" alt="drum_machine" src="https://github.com/user-attachments/assets/b67fe759-3571-4449-a4d1-9a06a9c9d82b" />
 
 ## Features
 - 8 Tracks
